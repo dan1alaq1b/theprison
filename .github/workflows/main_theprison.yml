@@ -54,4 +54,4 @@ jobs:
           app-name: 'theprison'
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_1E6FBD6D491D4AC899D7F19EC58DC25D }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_D84925A9CD8B4BB7997A3A37F7D1CCD8 }}
