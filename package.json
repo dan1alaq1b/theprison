@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "build": "echo 'No build necessary'" // Placeholder build script to prevent errors
+    "build": "echo 'No build necessary'"
   },
   "repository": {
     "type": "git",
