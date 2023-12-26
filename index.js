@@ -22,7 +22,8 @@ const swaggerOptions = {
 const specs = swaggerJsdoc(swaggerOptions);
 
 // Serve Swagger UI
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+//app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+app.use('', swaggerUi.serve, swaggerUi.setup(specs)); //for direct access
 
 // Your other middleware and routes can go here...
 
