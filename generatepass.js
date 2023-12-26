@@ -1,8 +1,8 @@
 /**
  * @swagger
  * tags:
- *   name: GeneratePass
- *   description: API endpoints for generating passes
+ *   name: Generate Your Pass
+ *   description: Generate A Visitor Pass (Used By Admin Only)
  */
 
 /**
