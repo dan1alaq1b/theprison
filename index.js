@@ -12,7 +12,7 @@ const swaggerOptions = {
     info: {
       title: 'OUR GULAG',
       version: '1.0.0',
-      description: 'Welcome to Our 5-Star Gulag',
+      description: 'WELCOME TO OUR 5-STAR GULAG',
     },
   },
   // Path to files containing OpenAPI specifications (e.g., your routes)
