@@ -10,9 +10,9 @@ const swaggerOptions = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Your API Title',
+      title: 'OUR GULAG',
       version: '1.0.0',
-      description: 'Your API Description',
+      description: 'Welcome to Our 5-Star Gulag',
     },
   },
   // Path to files containing OpenAPI specifications (e.g., your routes)
