@@ -16,13 +16,10 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '14' # Specify your Node.js version
+          node-version: '14'
 
       - name: Install dependencies
-        run: npm install  # Use npm to install dependencies if needed
-
-      - name: Build
-        run: npm run build  # Run any build commands necessary for your app
+        run: npm install
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v2
