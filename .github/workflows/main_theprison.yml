@@ -25,7 +25,7 @@ jobs:
           include-prerelease: true
 
       - name: Build with dotnet
-        run: dotnet build "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\ImportProjects\vcs\ImportDefaultDll.csproj" --configuration Release
+        run: dotnet build "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\ImportProjects\vcs\ImportDefault.csproj" --configuration Release
 
       - name: dotnet publish
         run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
