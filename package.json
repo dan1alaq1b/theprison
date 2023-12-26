@@ -1,19 +1,27 @@
 {
   "name": "theprison",
   "version": "1.0.0",
-  "description": "",
+  "description": "Your application description",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "build": "echo 'No build necessary'"
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1", // Core dependency
+    "swagger-jsdoc": "^7.0.0", // Swagger-jsdoc package
+    "swagger-ui-express": "^4.1.6" // Swagger UI express package
+    // Add any other dependencies your application requires
   },
   "repository": {
     "type": "git",
-    "url": "theprison"
+    "url": "your-repo-url"
   },
   "keywords": [
-    "prison"
+    "prison",
+    "node",
+    "express"
+    // Add other keywords if necessary
   ],
-  "author": "danial",
+  "author": "Your Name",
   "license": "ISC"
 }
