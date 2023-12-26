@@ -1,6 +1,7 @@
 const express = require('express');
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
+const dbConnection = require('./db'); // Import the database connection
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -12,7 +13,7 @@ const swaggerOptions = {
     info: {
       title: 'OUR GULAG',
       version: '1.0.0',
-      description: 'WELCOME TO OUR 5-STAR GULAG',
+      description: 'Welcome To Our 5-Star Gulag',
     },
   },
   // Path to files containing OpenAPI specifications (e.g., your routes)
@@ -22,7 +23,6 @@ const swaggerOptions = {
 const specs = swaggerJsdoc(swaggerOptions);
 
 // Serve Swagger UI
-//app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 app.use('', swaggerUi.serve, swaggerUi.setup(specs)); //for direct access
 
 // Your other middleware and routes can go here...
