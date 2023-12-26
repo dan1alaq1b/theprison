@@ -1,8 +1,8 @@
 /**
  * @swagger
  * tags:
- *   name: Visitor
- *   description: API endpoints for visitor actions
+ *   name: Visitor Registration
+ *   description: Register A New Visitor
  */
 
 /**
