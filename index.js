@@ -24,9 +24,9 @@ const options = {
 const specs = swaggerJsdoc(options);
 
 // Serve Swagger UI
-//app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
-app.use('', swaggerUi.serve, swaggerUi.setup(specs)); //access by default
+//app.use('', swaggerUi.serve, swaggerUi.setup(specs)); //access by default
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
