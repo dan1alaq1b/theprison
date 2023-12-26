@@ -2,7 +2,7 @@
  * @swagger
  * tags:
  *   name: Admin
- *   description: API endpoints for admin actions
+ *   description: For Security Personnel Only
  */
 
 /**
