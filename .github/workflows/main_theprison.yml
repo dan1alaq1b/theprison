@@ -1,4 +1,4 @@
-name: Build and deploy ASP.Net Core app to Azure Web App - theprison
+name: Build and deploy Node.js app to Azure Web App - theprison
 
 on:
   push:
@@ -14,27 +14,21 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
-          node-version: '16.x' # Change this to your desired Node.js version
+          node-version: '14' # Specify your Node.js version
 
-      - name: Set up .NET Core
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: '8.0'
-          include-prerelease: true
+      - name: Install dependencies
+        run: npm install  # Use npm to install dependencies if needed
 
-      - name: Build with dotnet
-        run: dotnet build "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\ImportProjects\vcs\ImportDefault.csproj" --configuration Release
-
-      - name: dotnet publish
-        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
+      - name: Build
+        run: npm run build  # Run any build commands necessary for your app
 
       - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v2
         with:
-          name: .net-app
-          path: ${{env.DOTNET_ROOT}}/myapp
+          name: node-app
+          path: .  # Adjust the path to include the built artifacts
 
   deploy:
     runs-on: ubuntu-latest
@@ -45,15 +39,13 @@ jobs:
     
     steps:
       - name: Download artifact from build job
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v2
         with:
-          name: .net-app
+          name: node-app
       
       - name: Deploy to Azure Web App
-        id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
         with:
           app-name: 'theprison'
           slot-name: 'Production'
-          package: .
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_1E6FBD6D491D4AC899D7F19EC58DC25D }}
