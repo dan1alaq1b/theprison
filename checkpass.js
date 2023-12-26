@@ -1,8 +1,8 @@
 /**
  * @swagger
  * tags:
- *   name: CheckPass
- *   description: API endpoints for checking pass status
+ *   name: View Your Pass
+ *   description: Click To View Your Visitor Pass Status
  */
 
 /**
