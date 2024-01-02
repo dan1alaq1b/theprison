@@ -1,0 +1,75 @@
+GET http://localhost:4000/view/visitor/admin
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFtaXIiLCJpYXQiOjE2ODgwMzQ5MTcsImV4cCI6MTY4ODAzNTUxN30.5vl5qrOyc2HTyr9400gPyPhkwmgTWgBswtO1NwEUUa8
+###
+GET http://localhost:4000/view/host/admin
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFtaXIiLCJpYXQiOjE2ODgwMzM4MTQsImV4cCI6MTY4ODAzNDQxNH0.rq8IcBZV5athcpJ0wpPFF1xo1GTKBjf9W-cDA0wQVDs
+###
+post http://localhost:4000/create/visitor/admin
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFtaXIiLCJpYXQiOjE2ODgwMzQ1MDUsImV4cCI6MTY4ODAzNTEwNX0.uQ-roPmwRuaq_9c2fOcEXhoaoOAUIIZWAERer7P9eqM
+Content-Type: application/json
+
+{
+    "visitorname":"alice",
+    "idproof":"abc"
+
+}
+###
+post http://localhost:4000/login/admin
+Content-Type: application/json
+
+{
+    "username":"bob",
+    "password":"12345"
+}
+
+###
+PUT http://localhost:4000/update/visitor/b0221200564
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFtaXIiLCJpYXQiOjE2ODgwMzQ1NzksImV4cCI6MTY4ODAzNTE3OX0.tyrwnIcDTjXMKCgnN4GBezUtGnenFMvve4PIKJp5baw
+Content-Type: application/json
+
+{
+    "cellno": 3,
+    "entrytime": 1018,
+    "timespend": 7
+}
+###
+POST http://localhost:4000/create/host/admin
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFtaXIiLCJpYXQiOjE2ODgwMzQ5OTIsImV4cCI6MTY4ODAzNTU5Mn0.WbjaUV57K5-beePR93H_Zb6KScfHpdpw7kKBlrqv0yc
+Content-Type: application/json
+
+{
+    "hostname": "mallory",
+    "cellno": 5,
+    "available": "yes"
+
+}
+###
+PUT http://localhost:4000/update/host/hostname
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFtaXIiLCJpYXQiOjE2ODgwMzQ5OTIsImV4cCI6MTY4ODAzNTU5Mn0.WbjaUV57K5-beePR93H_Zb6KScfHpdpw7kKBlrqv0yc
+Content-Type: application/json
+
+{
+    "hostname": "mallory",
+    "cellno": 7,
+    "available": "yes"
+}
+###
+DELETE http://localhost:4000/delete/visitor/def
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFtaXIiLCJpYXQiOjE2ODgwMzQ1NzksImV4cCI6MTY4ODAzNTE3OX0.tyrwnIcDTjXMKCgnN4GBezUtGnenFMvve4PIKJp5baw
+Content-Type: application/json
+
+{
+    "idproof": "def"
+}
+
+###
+DELETE http://localhost:4000/delete/host/mallory
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFtaXIiLCJpYXQiOjE2ODgwMzQ5OTIsImV4cCI6MTY4ODAzNTU5Mn0.WbjaUV57K5-beePR93H_Zb6KScfHpdpw7kKBlrqv0yc
+Content-Type: application/json
+
+{
+    "hostname": "mallory"
+}
+
+###
+POST http://localhost:4000/logout
