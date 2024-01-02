@@ -1,0 +1,28 @@
+app.post('/login/admin', (req, res) => {
+  console.log(req.body);
+  login(req.body.username, req.body.password)
+    .then(result => {
+      if (result.message === 'Your password is correct') {
+        const token = generateToken({ username: req.body.username });
+        res.send({ message: 'Login Successful', token });
+      } else {
+        res.send('Login Unsuccessful');
+      }
+    })
+    .catch(error => {
+      console.error(error);
+      res.status(500).send("Server Error");
+    });
+});
+
+async function login(reqUsername, reqPassword) {
+  let matchUser = await client.db('prison').collection('admin').findOne({ username: { $eq: reqUsername } });
+
+  if (!matchUser)
+    return { message: "No user found!" };
+
+  if (matchUser.password === reqPassword)
+    return { message: "Correct password", user: matchUser };
+  else
+    return { message: "Invalid password" };
+}
