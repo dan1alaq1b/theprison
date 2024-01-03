@@ -1,8 +1,8 @@
 const MongoClient = require("mongodb").MongoClient;
-const User = require("./user");
+const User = require("./user.js");
 const Visitor = require("./visitor.js");
-const Inmate = require("./inmate");
-const Visitorlog = require("./visitorlog")
+const Inmate = require("./inmate.js");
+const Visitorlog = require("./visitorlog.js")
 
 
 MongoClient.connect(
@@ -74,7 +74,7 @@ const options = {
 		}]
 		}
 	},
-	apis: ['./index.js'], 
+	apis: ['./main.js'], 
 };
 const swaggerSpec = swaggerJsdoc(options);
 app.use('/', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
