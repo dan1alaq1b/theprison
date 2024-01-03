@@ -20,14 +20,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dan1alaq1b/theprison2.git"
+    "url": "git+https://github.com/dan1alaq1b/theprison.git"
   },
   "keywords": [
     "prison"
   ],
   "bugs": {
-    "url": "https://github.com/dan1alaq1b/theprison2/issues"
+    "url": "https://github.com/dan1alaq1b/theprison/issues"
   },
-  "homepage": "https://github.com/dan1alaq1b/theprison2#readme",
-  "description": ""
+  "homepage": "https://github.com/dan1alaq1b/theprison#readme",
+  "description": "",
+  "devDependencies": {}
 }
