@@ -111,6 +111,7 @@
     "mquery": "^5.0.0",
     "ms": "^2.1.2",
     "negotiator": "^0.6.3",
+    "node": "^21.2.0",
     "node-addon-api": "^5.1.0",
     "node-fetch": "^2.7.0",
     "nodejs": "^0.0.0",
