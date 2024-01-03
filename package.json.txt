@@ -1,0 +1,32 @@
+{
+  "name": "theprison",
+  "version": "1.0.0",
+  "description": "This is a VMS for Prison",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongodb": "^6.3.0",
+    "mongoose": "^8.0.3",
+    "node.js": "^0.0.1-security",
+    "swagger-jsdoc": "^6.0.0",
+    "swagger-ui-express": "^4.1.6"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dan1alaq1b/theprison.git"
+  },
+  "keywords": [
+    "prison",
+    "node",
+    "express"
+  ],
+  "author": "danial",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dan1alaq1b/theprison/issues"
+  },
+  "homepage": "https://github.com/dan1alaq1b/theprison#readme"
+}

@@ -1,32 +1,33 @@
 {
-  "name": "theprison",
+  "name": "assignment-mongodb",
   "version": "1.0.0",
-  "description": "This is a VMS for Prison",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
+  "author": "danial",
+  "license": "ISC",
   "dependencies": {
+    "bcrypt": "^5.1.1",
+    "ejs": "^3.1.9",
     "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.3.0",
     "mongoose": "^8.0.3",
-    "node.js": "^0.0.1-security",
-    "swagger-jsdoc": "^6.0.0",
-    "swagger-ui-express": "^4.1.6"
+    "nodejs": "^0.0.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.0"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dan1alaq1b/theprison.git"
+    "url": "git+https://github.com/dan1alaq1b/theprison2.git"
   },
   "keywords": [
-    "prison",
-    "node",
-    "express"
+    "prison"
   ],
-  "author": "danial",
-  "license": "ISC",
   "bugs": {
-    "url": "https://github.com/dan1alaq1b/theprison/issues"
+    "url": "https://github.com/dan1alaq1b/theprison2/issues"
   },
-  "homepage": "https://github.com/dan1alaq1b/theprison#readme"
+  "homepage": "https://github.com/dan1alaq1b/theprison2#readme",
+  "description": ""
 }

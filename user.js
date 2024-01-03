@@ -1,9 +1,9 @@
 const bcrypt = require("bcrypt")
-let visitors;
-// 
-class Visitor {
+let users;
+// /
+class User {
 	static async injectDB(conn) {
-		visitors = await conn.db("Prison_VMS").collection("visitors")
+		users = await conn.db("Prison_VMS").collection("users")
 	}
 
 	/**
@@ -14,9 +14,9 @@ class Visitor {
 	 * @param {*} password 
 	 * @param {*} phone 
 	 */
-	static async register(username, password, name, age, gender, relation, telno) {
+	static async register(username, password, name, officerno, rank, phone) {
 		// TODO: Check if username exists
-		const res = await visitors.findOne({ username: username })
+		const res = await users.findOne({ username: username })
 
 			if (res){
 				return { status: "duplicate username"}
@@ -27,23 +27,20 @@ class Visitor {
 			const hash = await bcrypt.hash(password, salt)
 
 			// TODO: Save user to database
-			visitors.insertOne({
+			users.insertOne({
 							"username": username,
 							"Password": password,
 							"HashedPassword": hash,
 							"Name": name,
-							"Age": age,
-							"Gender": gender,
-              "Relation": relation,
-			  "PhoneNo": telno
-            });
-			return { status: "Succesfully register Visitor"}
+							"OfficerNo": officerno,
+							"Rank": rank,
+							"Phone": phone,});
+			return { status: "Succesfully register user"}
 	}
-
 
 	static async login(username, password) {
 			// TODO: Check if username exists
-			const result = await visitors.findOne({username: username});
+			const result = await users.findOne({username: username});
 
 				if (!result) {
 					return { status: "invalid username" }
@@ -59,23 +56,21 @@ class Visitor {
 				
 	}
 	
-		static async update(username, name, age, gender, relation,telno){
-				visitors.updateOne({username:username},{$set:{
+		static async update(username, name, officerno, rank, phone){
+				users.updateOne({username:username},{$set:{
 				"Name": name,
-				"Age": age,
-				"Gender": gender,
-        "Relation": relation,
-		"PhoneNo": telno
-	}})
-				return { status: "Information updated"}
+				"OfficerNo": officerno,
+				"Rank": rank,
+				"Phone": phone,}});
+				return { status: "Information updated" }
 		}
 
 		static async delete(username) {
-			visitors.deleteOne({username: username})
-			return { status: "Visitor deleted!"}
+			users.deleteOne({username: username})
+			return { status: "User deleted!" }
 		}
 
 	}
 
 
-module.exports = Visitor;
+module.exports = User;
