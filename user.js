@@ -56,20 +56,47 @@ class User {
 				
 	}
 	
-		static async update(username, name, officerno, rank, phone){
-				users.updateOne({username:username},{$set:{
-				"Name": name,
-				"OfficerNo": officerno,
-				"Rank": rank,
-				"Phone": phone,}});
-				return { status: "Information updated" }
-		}
+	static async update(username, name, officerno, rank, phone){
+			users.updateOne({username:username},{$set:{
+			"Name": name,
+			"OfficerNo": officerno,
+			"Rank": rank,
+			"Phone": phone,}});
+			return { status: "Information updated" }
+	}
 
-		static async delete(username) {
-			users.deleteOne({username: username})
-			return { status: "User deleted!" }
+	static async delete(username) {
+		users.deleteOne({username: username})
+		return { status: "User deleted!" }
+	}
+/*
+	static async getAllUsers() {
+		try {
+		  const allUsers = await users.find({}).toArray();
+		  return allUsers;
+		} catch (err) {
+		  console.error("Error retrieving users:", err);
+		  return { error: "Failed to retrieve users" };
 		}
+	}	
 
+	// Add a new method to retrieve all users after a successful login
+	static async loginAndRetrieveAllUsers(username, password) {
+    	const loginResult = await this.login(username, password);
+
+    	if (loginResult.status !== "invalid username" && loginResult.status !== "invalid password") {
+        	const allUsers = await this.getAllUsers();
+        	return { loginStatus: "success", allUsers: allUsers };
+    }
+
+    	return { loginStatus: loginResult.status };
+	}
+*/
+
+	static async getAllUsers() {
+		return await users.find().toArray();
+  	}
+  
 	}
 
 

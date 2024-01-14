@@ -3,7 +3,7 @@ const User = require("./user");
 const Visitor = require("./visitor.js");
 const Inmate = require("./inmate");
 const Visitorlog = require("./visitorlog")
-
+const bcrypt = require("bcrypt")
 
 MongoClient.connect(
 	// TODO: Connection 
@@ -58,7 +58,8 @@ const options = {
 		openapi: '3.0.0',
 		info: {
 			title: 'Prison Visitor Management System',
-			version: '1.0.0',
+			description: 'Welcome!',
+			version: '1.0.11',
 		},
 		components:{
 			securitySchemes:{
@@ -69,21 +70,150 @@ const options = {
 					bearerFormat: 'JWT'
 				}
 			},
+			schemas: {
+				User: {
+				  type: 'object',
+				  properties: {
+					username: { type: 'string' },
+					name: { type: 'string' },
+					officerno: { type: 'string' },
+					rank: { type: 'string' },
+					phone: { type: 'string' },
+					// Add other properties as needed
+				  },
+				},
+			  //},
+			},
 		security:[{
 			"jwt": []
 		}]
-		}
+		},
 	},
+
 	apis: ['./main.js'], 
 };
 const swaggerSpec = swaggerJsdoc(options);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+/*
+// *****************************USER************************************
+//const bcrypt = require("bcrypt")
+let users;
+// /
+class User {
+	static async injectDB(conn) {
+		users = await conn.db("Prison_VMS").collection("users")
+	}
+
+	/**
+	 * @remarks
+	 * This method is not implemented yet. To register a new user, you need to call this method.
+	 * 
+	 * @param {*} username 
+	 * @param {*} password 
+	 * @param {*} phone 
+	 */
+/*	static async register(username, password, name, officerno, rank, phone) {
+		// TODO: Check if username exists
+		const res = await users.findOne({ username: username })
+
+			if (res){
+				return { status: "duplicate username"}
+			}
+
+			// TODO: Hash password
+			const salt = await bcrypt.genSalt(10);
+			const hash = await bcrypt.hash(password, salt)
+
+			// TODO: Save user to database
+			users.insertOne({
+							"username": username,
+							"Password": password,
+							"HashedPassword": hash,
+							"Name": name,
+							"OfficerNo": officerno,
+							"Rank": rank,
+							"Phone": phone,});
+			return { status: "Succesfully register user"}
+	}
+
+	static async login(username, password) {
+			// TODO: Check if username exists
+			const result = await users.findOne({username: username});
+
+				if (!result) {
+					return { status: "invalid username" }
+				}
+
+			// TODO: Validate password
+				const com = await bcrypt.compare(password, result.HashedPassword)
+				if (!com){
+					return { status: "invalid password"}
+				}
+			// TODO: Return user object
+				return result;
+				
+	}
+	
+	static async update(username, name, officerno, rank, phone){
+			users.updateOne({username:username},{$set:{
+			"Name": name,
+			"OfficerNo": officerno,
+			"Rank": rank,
+			"Phone": phone,}});
+			return { status: "Information updated" }
+	}
+
+	static async delete(username) {
+		users.deleteOne({username: username})
+		return { status: "User deleted!" }
+	}
+
+	// Add a new method to retrieve all users after a successful login
+	static async loginAndRetrieveAllUsers(username, password) {
+    	const loginResult = await this.login(username, password);
+
+    	if (loginResult.status !== "invalid username" && loginResult.status !== "invalid password") {
+        	const allUsers = await this.getAllUsers();
+        	return { loginStatus: "success", allUsers: allUsers };
+    }
+
+    	return { loginStatus: loginResult.status };
+	}
+
+	}
+*/
+
+/*
+// Assuming you have received username and password from the login form
+const username = "username"; // Replace with actual username
+const password = "password"; // Replace with actual password
+
+User.loginAndRetrieveAllUsers(username, password)
+    .then((loginData) => {
+        if (loginData.loginStatus === "success") {
+            const allUsers = loginData.allUsers;
+            // Display allUsers on the login page or perform actions with the data
+            console.log(allUsers); // Replace this with your display logic
+        } else {
+            // Handle invalid username/password cases
+            console.log(loginData.loginStatus);
+        }
+    })
+    .catch((err) => {
+        console.error(err);
+        // Handle error if necessary
+    });
+	*/
+/*
 /**
  * @swagger
  * /login/user:
  *   post:
+ *     summary : login to account
  *     description: User Login
+ *     tags:
+ *     - User
  *     requestBody:
  *       required: true
  *       content:
@@ -101,7 +231,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
  *       401:
  *         description: Invalid username or password
  */
-
+/*
 app.post('/login/user', async (req, res) => {
 	console.log(req.body);
 
@@ -124,11 +254,83 @@ app.post('/login/user', async (req, res) => {
 	});
 })
 
+*/
+
+/**
+ * @swagger
+ * /login/user:
+ *   post:
+ *     summary : login to account
+ *     description: User Login
+ *     tags:
+ *     - System
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: 
+ *             type: object
+ *             properties:
+ *               username: 
+ *                 type: string
+ *               password: 
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Successful login
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 username:
+ *                   type: string
+ *                 name:
+ *                   type: string
+ *                 officerno:
+ *                   type: string
+ *                 rank:
+ *                   type: string
+ *                 phone:
+ *                   type: string
+ *                 token:
+ *                   type: string
+ *                 allUsers:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Invalid username or password
+ */
+
+app.post('/login/user', async (req, res) => {
+	console.log(req.body);
+
+	let user = await User.loginAndRetrieveAllUsers(req.body.username, req.body.password);
+	
+	if (user.loginStatus === "success") {
+		res.status(200).json({
+			username: user.username,
+			name: user.Name,
+			officerno: user.officerno,
+			rank: user.Rank,
+			phone: user.Phone,
+			token: generateAccessToken({ rank: user.Rank }),
+			allUsers: user.allUsers
+		});
+	} else {
+		res.status(401).send("Invalid username or password");
+	}
+});
+
 /**
  * @swagger
  * /login/visitor:
  *   post:
+ *     summary : Visitor Account Login
  *     description: Visitor Login
+ *     tags: 
+ *     - Visitor
  *     requestBody:
  *       required: true
  *       content:
@@ -171,7 +373,10 @@ app.post('/login/visitor', async (req, res) => {
  * @swagger
  * /register/user:
  *   post:
+ *     summary : Visitor Account Login
  *     description: User Registration
+ *     tags:
+ *     - User
  *     requestBody:
  *       required: true
  *       content:
@@ -211,7 +416,10 @@ app.post('/register/user', async (req, res) => {
  * @swagger
  * /register/visitor:
  *   post:
+ *     summary : Visitor Account Registration
  *     description: Visitor Registration
+ *     tags:
+ *     - User
  *     requestBody:
  *       required: true
  *       content:
@@ -255,8 +463,11 @@ app.use(verifyToken);
  * @swagger
  * /register/Visitorlog:
  *   post:
+ *     summary : Visitorlog Registration
  *     security:
  *      - jwt: []
+ *     tags:
+ *     - User
  *     description: Create Visitorlog
  *     requestBody:
  *       required: true
@@ -306,8 +517,11 @@ app.use(verifyToken);
  * @swagger
  * /register/inmate:
  *   post:
+ *   summary : Inmate Registration
  *     security:
  *      - jwt: []
+ *     tags:
+ *     - User
  *     description: Inmate Registration
  *     requestBody:
  *       required: true
@@ -349,12 +563,46 @@ app.use(verifyToken);
 
 })
 
+// Display all user to admin upon login
+/**
+ * @swagger
+ * /user/allusers:
+ *   get:
+ *     summary: Retrieve all users
+ *     security:
+ *      - jwt: []
+ *     tags:
+ *     - Admin
+ *     description: Get all users from the database
+ *     responses:
+ *       200:
+ *         description: Successful operation
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/User' // Define your User schema here
+ */
+app.get('/user', async (req, res) => {
+  try {
+    const allUsers = await User.getAllUsers();
+    res.json(allUsers);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to retrieve users' });
+  }
+});
+
+
 /**
  * @swagger
  * /user/update:
  *   patch:
+ *     summary : User Update
  *     security:
  *      - jwt: []
+ *     tags:
+ *     - Admin
  *     description: User Update
  *     requestBody:
  *       required: true
@@ -383,7 +631,7 @@ app.use(verifyToken);
 app.patch('/user/update', async (req, res) => {
 	console.log(req.body);
 
-	if (req.user.rank == "officer"){
+	if (req.user.rank == "admin"){
 		const update = await User.update(req.body.username, req.body.name, req.body.officerno, req.body.rank, req.body.phone);
 		res.status(200).send(update)
 	}
@@ -397,8 +645,11 @@ app.patch('/user/update', async (req, res) => {
  * @swagger
  * /visitor/update:
  *   patch:
+ *     summary : Visitor Update
  *     security:
  *      - jwt: []
+ *     tags:
+ *     - User
  *     description: Visitor Update
  *     requestBody:
  *       required: true
@@ -444,8 +695,11 @@ app.patch('/visitor/update', async (req, res) => {
  * @swagger
  * /inmate/update:
  *   patch:
+ *     summary : Inmate Update
  *     security:
  *      - jwt: []
+ *     tags:
+ *     - User
  *     description: Inmate Update
  *     requestBody:
  *       required: true
@@ -488,8 +742,11 @@ app.patch('/visitor/update', async (req, res) => {
  * @swagger
  * /visitorlog/update:
  *   patch:
+ *     summary : Visitorlog Update
  *     security:
  *      - jwt: []
+ *     tags:
+ *     - User
  *     description: Visitorlog Update
  *     requestBody:
  *       required: true
@@ -536,8 +793,11 @@ app.patch('/visitor/update', async (req, res) => {
  * @swagger
  * /delete/user:
  *   delete:
+ *     summary : User Delete
  *     security:
  *      - jwt: []
+ *     tags:
+ *     - Admin
  *     description: Delete User
  *     requestBody:
  *       required: true
@@ -557,7 +817,7 @@ app.patch('/visitor/update', async (req, res) => {
  */
 
 app.delete('/delete/user', async (req, res) => {
-	if (req.user.rank == "officer"){
+	if (req.user.rank == "admin"){
 		const del = await User.delete(req.body.username)
 		res.status(200).send(del)
 	}
@@ -570,8 +830,11 @@ app.delete('/delete/user', async (req, res) => {
  * @swagger
  * /delete/visitor:
  *   delete:
+ *     summary : Visitor Delete
  *     security:
  *      - jwt: []
+ *     tags:
+ *     - User
  *     description: Delete Visitor
  *     requestBody:
  *       required: true
@@ -591,7 +854,7 @@ app.delete('/delete/user', async (req, res) => {
  */
 
 app.delete('/delete/visitor', async (req, res) => {
-	if (req.user.rank == "officer"){
+	if (req.user.rank == "admin"){
 		const del = await Visitor.delete(req.body.username)
 		res.status(200).send(del)
 	}
@@ -604,8 +867,11 @@ app.delete('/delete/visitor', async (req, res) => {
  * @swagger
  * /delete/Inmate:
  *   delete:
+ *     summary : Inmate Delete
  *     security:
  *      - jwt: []
+ *     tags:
+ *     - User
  *     description: Delete Inmate
  *     requestBody:
  *       required: true
@@ -625,7 +891,7 @@ app.delete('/delete/visitor', async (req, res) => {
  */
 
  app.delete('/delete/inmate', async (req, res) => {
-	if (req.user.rank == "officer"){
+	if (req.user.rank == "admin"){
 		const del = await Inmate.delete(req.body.inmateno)
 		res.status(200).send(del)
 	}
@@ -638,8 +904,11 @@ app.delete('/delete/visitor', async (req, res) => {
  * @swagger
  * /delete/visitorlog:
  *   delete:
+ *     summary : Visitorlog Delete
  *     security:
  *      - jwt: []
+ *     tags:
+ *     - User
  *     description: Delete Visitorlog
  *     requestBody:
  *       required: true
@@ -659,7 +928,7 @@ app.delete('/delete/visitor', async (req, res) => {
  */
 
  app.delete('/delete/visitorlog', async (req, res) => {
-	if (req.user.rank == "officer" || "security"){
+	if (req.user.rank == "admin" || "security"){
 		const del = await Visitorlog.delete(req.body.logno)
 		res.status(200).send(del)
 	}
