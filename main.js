@@ -376,7 +376,7 @@ app.post('/login/visitor', async (req, res) => {
  *     summary : Visitor Account Login
  *     description: User Registration
  *     tags:
- *     - User
+ *     - Admin
  *     requestBody:
  *       required: true
  *       content:
@@ -940,3 +940,114 @@ app.delete('/delete/visitor', async (req, res) => {
 app.listen(port, () => {
 	console.log(`Example app listening at http://localhost:${port}`)
 })
+
+/**
+ * @swagger
+ * /issue/visitorpass:
+ *   post:
+ *     summary: Issue Visitor Pass
+ *     security:
+ *       - jwt: []
+ *     tags:
+ *       - User
+ *     description: Issue visitor pass (only store visitor record)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               inmateName:
+ *                 type: string
+ *               visitorName:
+ *                 type: string
+ *               visitorAge:
+ *                 type: integer
+ *               visitorGender:
+ *                 type: string
+ *               visitorRelation:
+ *                 type: string
+ *               visitorTelNo:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Visitor pass issued successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Internal server error
+ */
+
+app.post('/issue/visitorpass', async (req, res) => {
+	try {
+	  // Check if the user has the necessary permissions (e.g., guard)
+	  if (req.user.rank === 'guard') {
+		// Extract relevant information from the request body
+		const { inmateName, visitorName, visitorAge, visitorGender, visitorRelation, visitorTelNo } = req.body;
+  
+		// Add logic to store the visitor record in the database (Visitorlog)
+		const issuedPass = await Visitorlog.issueVisitorPass(inmateName, visitorName, visitorAge, visitorGender, visitorRelation, visitorTelNo);
+  
+		res.status(200).json({ status: 'Visitor pass issued successfully', issuedPass });
+	  } else {
+		res.status(403).send('You are unauthorized');
+	  }
+	} catch (error) {
+	  console.error(error);
+	  res.status(500).json({ error: 'Internal server error' });
+	}
+  });
+
+  /**
+ * @swagger
+ * /retrieve/visitorpass:
+ *   get:
+ *     summary: Retrieve Issued Visitor Pass
+ *     tags:
+ *       - Visitor
+ *     description: Retrieve issued visitor pass by entering inmate's name
+ *     parameters:
+ *       - in: query
+ *         name: inmateName
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Visitor pass retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Visitor pass not found
+ *       500:
+ *         description: Internal server error
+ */
+
+app.get('/retrieve/visitorpass', async (req, res) => {
+	try {
+	  // Check if the user is a visitor
+	  if (req.user.rank === 'visitor') {
+		const inmateName = req.query.inmateName;
+  
+		// Add logic to retrieve the visitor pass based on the inmate's name
+		const retrievedPass = await Visitorlog.retrieveVisitorPass(inmateName);
+  
+		if (retrievedPass) {
+		  res.status(200).json({ status: 'Visitor pass retrieved successfully', retrievedPass });
+		} else {
+		  res.status(404).json({ error: 'Visitor pass not found' });
+		}
+	  } else {
+		res.status(403).send('You are unauthorized');
+	  }
+	} catch (error) {
+	  console.error(error);
+	  res.status(500).json({ error: 'Internal server error' });
+	}
+  });
+  
