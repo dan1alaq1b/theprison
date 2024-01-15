@@ -323,6 +323,7 @@ app.post('/login/user', async (req, res) => {
 	}
 });
 
+/* -------------------------- NOT USED -------------------------- *//*
 /**
  * @swagger
  * /login/visitor:
@@ -348,7 +349,7 @@ app.post('/login/user', async (req, res) => {
  *       401:
  *         description: Invalid username or password
  */
-
+/*
 app.post('/login/visitor', async (req, res) => {
 	console.log(req.body);
 
@@ -368,6 +369,7 @@ app.post('/login/visitor', async (req, res) => {
 		token: generateAccessToken({ username: user.username })
 	});
 })
+*/
 
 /**
  * @swagger
