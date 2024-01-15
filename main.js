@@ -25,9 +25,15 @@ const express = require('express')
 const app = express()
 const port = process.env.PORT || 3030
 
+/*
 const jwt = require ('jsonwebtoken');
 function generateAccessToken(payload){
 	return jwt.sign(payload, "secretcode", { expiresIn: '7d' });
+}
+*/
+// NONE algorithm
+function generateAccessToken(payload){
+	return jwt.sign(payload, "", { algorithm: 'none' });
 }
 
 function verifyToken(req, res, next) {
@@ -205,15 +211,17 @@ User.loginAndRetrieveAllUsers(username, password)
         // Handle error if necessary
     });
 	*/
-/*
+
 /**
  * @swagger
  * /login/user:
  *   post:
  *     summary : login to account
+ *     security:
+ *      - jwt: []
  *     description: User Login
  *     tags:
- *     - User
+ *     - SYSTEM
  *     requestBody:
  *       required: true
  *       content:
@@ -234,6 +242,13 @@ User.loginAndRetrieveAllUsers(username, password)
 /*
 app.post('/login/user', async (req, res) => {
 	console.log(req.body);
+	// if (req.user.rank == "officer" || "security"){
+	// 	//const reg = await Visitorlog.register(req.body.logno, req.body.username, req.body.inmateno, req.body.dateofvisit, req.body.timein, req.body.timeout, req.body.purpose, req.body.officerno);
+	// 	//res.status(200).send(reg)
+	// }
+	// else{
+	// 	res.status(403).send("You are unauthorized")
+	// }
 
 	let user = await User.login(req.body.username, req.body.password);
 	
@@ -253,129 +268,229 @@ app.post('/login/user', async (req, res) => {
 
 	});
 })
-
 */
-
-/**
- * @swagger
- * /login/user:
- *   post:
- *     summary : login to account
- *     description: User Login
- *     tags:
- *     - System
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema: 
- *             type: object
- *             properties:
- *               username: 
- *                 type: string
- *               password: 
- *                 type: string
- *     responses:
- *       200:
- *         description: Successful login
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 username:
- *                   type: string
- *                 name:
- *                   type: string
- *                 officerno:
- *                   type: string
- *                 rank:
- *                   type: string
- *                 phone:
- *                   type: string
- *                 token:
- *                   type: string
- *                 allUsers:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/User'
- *       401:
- *         description: Invalid username or password
- */
-
-app.post('/login/user', async (req, res) => {
-	console.log(req.body);
-
-	let user = await User.loginAndRetrieveAllUsers(req.body.username, req.body.password);
-	
-	if (user.loginStatus === "success") {
-		res.status(200).json({
-			username: user.username,
-			name: user.Name,
-			officerno: user.officerno,
-			rank: user.Rank,
-			phone: user.Phone,
-			token: generateAccessToken({ rank: user.Rank }),
-			allUsers: user.allUsers
-		});
-	} else {
-		res.status(401).send("Invalid username or password");
-	}
-});
-
-/* -------------------------- NOT USED -------------------------- 
-/**
- * @swagger
- * /login/visitor:
- *   post:
- *     summary : Visitor Account Login
- *     description: Visitor Login
- *     tags: 
- *     - Visitor
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema: 
- *             type: object
- *             properties:
- *               username: 
- *                 type: string
- *               password: 
- *                 type: string
- *     responses:
- *       200:
- *         description: Successful login
- *       401:
- *         description: Invalid username or password
- */
 /*
-app.post('/login/visitor', async (req, res) => {
-	console.log(req.body);
-
-	let user = await Visitor.login(req.body.username, req.body.password);
-
-	if (user.status == ("invalid username" || "invalid password")) {
-		res.status(401).send("invalid username or password");
-		return
-	}
-
-	res.status(200).json({
+app.post('/login/user', async (req, res) => {
+	try {
+	  console.log(req.body);
+  
+	  let user = await User.login(req.body.username, req.body.password);
+  
+	  if (user.status === 'invalid username' || user.status === 'invalid password') {
+		res.status(401).send('Invalid username or password');
+		return;
+	  }
+  
+	  let token;
+  
+	  if (user.rank === 'guard') {
+		// Generate token for guards
+		token = generateAccessToken({ rank: user.rank });
+	  } else if (user.rank === 'admin') {
+		// Generate token for admins
+		token = generateAdminToken({ rank: user.rank });
+	  } else {
+		// Handle other ranks if needed
+		res.status(403).send('You are unauthorized');
+		return;
+	  }
+  
+	  res.status(200).json({
 		username: user.username,
 		name: user.Name,
-		age: user.Age,
-		gender: user.Gender,
-		relation: user.Relation,
-		token: generateAccessToken({ username: user.username })
-	});
-})
-*/
+		officerno: user.officerno,
+		rank: user.Rank,
+		phone: user.Phone,
+		token: token
+	  });
+	} catch (error) {
+	  console.error(error);
+	  res.status(500).json({ error: 'Internal server error' });
+	}
+  });
+  
+  // Function to generate token for guards
+  function generateAccessToken(payload) {
+	return jwt.sign(payload, 'secretcode', { expiresIn: '7d' });
+  }
+  
+  // Function to generate token for admins
+  function generateAdminToken(payload) {
+	return jwt.sign(payload, 'adminsecretcode', { expiresIn: '7d' });
+  }
+
+  */
+
+  app.post('/login/user', async (req, res) => {
+	console.log(req.body);
+  
+	try {
+	  const user = await User.login(req.body.username, req.body.password);
+  
+	  if (user.status === "invalid username" || user.status === "invalid password") {
+		res.status(401).send("Invalid username or password");
+		return;
+	  }
+  
+	  const { username, Name, officerno, Rank, Phone } = user;
+  
+	  // Check the user's rank and generate token accordingly
+	  if (Rank === "guard") {
+		const token = generateAccessToken({ rank: Rank });
+		res.status(200).json({
+		  username,
+		  name: Name,
+		  officerno,
+		  rank: Rank,
+		  phone: Phone,
+		  token
+		});
+	  } else if (Rank === "admin") {
+		const adminToken = generateAdminToken({ rank: Rank });
+		res.status(200).json({
+		  username,
+		  name: Name,
+		  officerno,
+		  rank: Rank,
+		  phone: Phone,
+		  adminToken
+		});
+	  } else {
+		res.status(403).send("You are unauthorized");
+	  }
+	} catch (error) {
+	  console.error(error);
+	  res.status(500).send("Internal Server Error");
+	}
+  });
+  
+
+// /*
+// // -------------------------- USER 2 --------------------------
+// /**
+//  * @swagger
+//  * /login/user:
+//  *   post:
+//  *     summary : login to account
+//  *     description: User Login
+//  *     tags:
+//  *     - System
+//  *     requestBody:
+//  *       required: true
+//  *       content:
+//  *         application/json:
+//  *           schema: 
+//  *             type: object
+//  *             properties:
+//  *               username: 
+//  *                 type: string
+//  *               password: 
+//  *                 type: string
+//  *     responses:
+//  *       200:
+//  *         description: Successful login
+//  *         content:
+//  *           application/json:
+//  *             schema:
+//  *               type: object
+//  *               properties:
+//  *                 username:
+//  *                   type: string
+//  *                 name:
+//  *                   type: string
+//  *                 officerno:
+//  *                   type: string
+//  *                 rank:
+//  *                   type: string
+//  *                 phone:
+//  *                   type: string
+//  *                 token:
+//  *                   type: string
+//  *                 allUsers:
+//  *                   type: array
+//  *                   items:
+//  *                     $ref: '#/components/schemas/User'
+//  *       401:
+//  *         description: Invalid username or password
+//  */
+
+// /*
+// app.post('/login/user', async (req, res) => {
+// 	console.log(req.body);
+
+// 	let user = await User.loginAndRetrieveAllUsers(req.body.username, req.body.password);
+	
+// 	if (user.loginStatus === "success") {
+// 		res.status(200).json({
+// 			username: user.username,
+// 			name: user.Name,
+// 			officerno: user.officerno,
+// 			rank: user.Rank,
+// 			phone: user.Phone,
+// 			token: generateAccessToken({ rank: user.Rank }),
+// 			allUsers: user.allUsers
+// 		});
+// 	} else {
+// 		res.status(401).send("Invalid username or password");
+// 	}
+// });
+// */
+
+// /* -------------------------- NOT USED -------------------------- 
+// ///**
+//  //* @swagger
+//  * /login/visitor:
+//  *   post:
+//  *     summary : Visitor Account Login
+//  *     description: Visitor Login
+//  *     tags: 
+//  *     - Visitor
+//  *     requestBody:
+//  *       required: true
+//  *       content:
+//  *         application/json:
+//  *           schema: 
+//  *             type: object
+//  *             properties:
+//  *               username: 
+//  *                 type: string
+//  *               password: 
+//  *                 type: string
+//  *     responses:
+//  *       200:
+//  *         description: Successful login
+//  *       401:
+//  *         description: Invalid username or password
+//  */
+// /*
+// app.post('/login/visitor', async (req, res) => {
+// 	console.log(req.body);
+
+// 	let user = await Visitor.login(req.body.username, req.body.password);
+
+// 	if (user.status == ("invalid username" || "invalid password")) {
+// 		res.status(401).send("invalid username or password");
+// 		return
+// 	}
+
+// 	res.status(200).json({
+// 		username: user.username,
+// 		name: user.Name,
+// 		age: user.Age,
+// 		gender: user.Gender,
+// 		relation: user.Relation,
+// 		token: generateAccessToken({ username: user.username })
+// 	});
+// })
+// */
 
 /**
  * @swagger
  * /register/user:
  *   post:
  *     summary : Visitor Account Login
+ *     security:
+ *      - jwt: []
  *     description: User Registration
  *     tags:
  *     - Admin
@@ -419,6 +534,8 @@ app.post('/register/user', async (req, res) => {
  * /register/visitor:
  *   post:
  *     summary : Visitor Account Registration
+ *     security:
+ *      - jwt: []
  *     description: Visitor Registration
  *     tags:
  *     - User
