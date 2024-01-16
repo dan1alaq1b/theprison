@@ -13,7 +13,7 @@ class Inmate {
 				return { status: "duplicate Inmateno"}
 			}
 			// TODO: Save inmate to database
-			inmate.insertOne({
+			await inmate.insertOne({
               "Inmateno": inmateno,
 							"Firstname": firstname,
 							"Lastname": lastname,
@@ -25,7 +25,7 @@ class Inmate {
 	}
 
 		static async update(inmateno, firstname, lastname,  age, gender, guilty){
-				inmate.updateOne({Inmateno: inmateno},{$set:{
+				await inmate.updateOne({Inmateno: inmateno},{$set:{
               "Firstname": firstname,
               "Lastname": lastname,
               "Age": age,
@@ -35,7 +35,7 @@ class Inmate {
 		}
 
 		static async delete(inmateno) {
-			inmate.deleteOne({Inmateno: inmateno})
+			await inmate.deleteOne({Inmateno: inmateno})
 			return { status: "Inmate deleted!" }
 		}
 

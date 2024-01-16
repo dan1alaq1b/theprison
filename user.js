@@ -39,20 +39,21 @@ class User {
 	}
 
 	static async login(username, password) {
-			// TODO: Check if username exists
-			const result = await users.findOne({username: username});
+		// TODO: Check if username exists
+		const result = await users.findOne({username: username});
 
-				if (!result) {
-					return { status: "invalid username" }
-				}
+		if (!result) {
+				return { status: "invalid username" }
+		}
 
-			// TODO: Validate password
-				const com = await bcrypt.compare(password, result.HashedPassword)
-				if (!com){
-					return { status: "invalid password"}
-				}
-			// TODO: Return user object
-				return result;
+		// TODO: Validate password
+		const com = await bcrypt.compare(password, result.HashedPassword);
+		if (!com){
+			return { status: "invalid password"};
+		}
+		
+		// TODO: Return user object
+		return result;
 				
 	}
 	

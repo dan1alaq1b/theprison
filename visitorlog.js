@@ -40,8 +40,8 @@ class Visitorlog {
 		}
 
 		static async delete(logno) {
-			visitorlog.deleteOne({Logno: logno})
-			return { status: "VisitorLog deleted!" }
+			await visitorlog.deleteOne({Logno: logno});
+			return { status: "VisitorLog deleted!" };
 		}
 
     static async find( logno ) {

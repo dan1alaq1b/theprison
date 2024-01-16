@@ -701,12 +701,94 @@ app.post('/register/user', verifyToken, async (req, res) => {
 // 	}
 //   });
 
+// /**
+//  * @swagger
+//  * /create/visitorpass:
+//  *   post:
+//  *     summary : VisitorPass Creation
+//  *     security: 
+//  *      - jwt: []
+//  *     tags:
+//  *     - User
+//  *     description: Create VisitorPass
+//  *     requestBody:
+//  *       required: true
+//  *       content:
+//  *         application/json:
+//  *           schema: 
+//  *             type: object
+//  *             properties:
+//  *               inmateName: 
+//  *                 type: string
+//  *               visitorRelationship:
+//  *                 type: string
+//  *               timeIn:
+//  *                 type: string
+//  *               timeOut:
+//  *                 type: string
+//  *               officerno:
+//  *                 type: string
+//  *     responses:
+//  *       200:
+//  *         description: Successful registered
+//  *       401:
+//  *         description: There is an error during registration , Please try again
+//  */
+// // app.post('/create/visitorpass', async (req, res) => {
+// // 	try {
+// // 	  // Extracting relevant parameters from the request body
+// // 	  const { inmateName, visitorRelationship, timeIn, timeOut, officerno } = req.body;
+  
+// // 	  // Checking user authorization
+// // 	  if (req.user.rank === 'officer' || req.user.rank === 'security' || req.user.rank === 'admin') {
+// // 		// Call the register function with the extracted parameters
+// // 		const reg = await Visitorlog.register({
+// // 		  inmateName,
+// // 		  visitorRelationship,
+// // 		  timeIn,
+// // 		  timeOut,
+// // 		  officerno,
+// // 		});
+  
+// // 		res.status(200).send(reg);
+// // 	  } else {
+// // 		res.status(403).send("You are unauthorized");
+// // 	  }
+// // 	} catch (error) {
+// // 	  console.error(error);
+// // 	  res.status(500).json({ error: 'Internal server error' });
+// // 	}
+// //   });
+  
+// app.post('/create/visitorpass', verifyToken, async (req, res) => {
+// 	try {
+// 	  const { inmateName, visitorRelationship, timeIn, timeOut, officerno } = req.body;
+  
+// 	  if (req.user.rank === 'officer' || req.user.rank === 'security' || req.user.rank === 'admin') {
+// 		const reg = await Visitorlog.register({
+// 		  inmateName,
+// 		  visitorRelationship,
+// 		  timeIn,
+// 		  timeOut,
+// 		  officerno,
+// 		});
+  
+// 		res.status(200).send(reg);
+// 	  } else {
+// 		res.status(403).send("You are unauthorized");
+// 	  }
+// 	} catch (error) {
+// 	  console.error(error);
+// 	  res.status(500).json({ error: 'Internal server error' });
+// 	}
+//   });
+
 /**
  * @swagger
  * /create/visitorpass:
  *   post:
- *     summary : VisitorPass Creation
- *     security: 
+ *     summary: VisitorPass Creation
+ *     security:
  *      - jwt: []
  *     tags:
  *     - User
@@ -728,61 +810,54 @@ app.post('/register/user', verifyToken, async (req, res) => {
  *                 type: string
  *               officerno:
  *                 type: string
+ *               firstname:
+ *                 type: string
+ *               lastname:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Successful registered
  *       401:
- *         description: There is an error during registration , Please try again
+ *         description: There is an error during registration, Please try again
  */
-// app.post('/create/visitorpass', async (req, res) => {
-// 	try {
-// 	  // Extracting relevant parameters from the request body
-// 	  const { inmateName, visitorRelationship, timeIn, timeOut, officerno } = req.body;
-  
-// 	  // Checking user authorization
-// 	  if (req.user.rank === 'officer' || req.user.rank === 'security' || req.user.rank === 'admin') {
-// 		// Call the register function with the extracted parameters
-// 		const reg = await Visitorlog.register({
-// 		  inmateName,
-// 		  visitorRelationship,
-// 		  timeIn,
-// 		  timeOut,
-// 		  officerno,
-// 		});
-  
-// 		res.status(200).send(reg);
-// 	  } else {
-// 		res.status(403).send("You are unauthorized");
-// 	  }
-// 	} catch (error) {
-// 	  console.error(error);
-// 	  res.status(500).json({ error: 'Internal server error' });
-// 	}
-//   });
-  
+
 app.post('/create/visitorpass', verifyToken, async (req, res) => {
 	try {
-	  const { inmateName, visitorRelationship, timeIn, timeOut, officerno } = req.body;
+	  const {
+		inmateName,
+		visitorRelationship,
+		timeIn,
+		timeOut,
+		officerno,
+		firstname,
+		lastname
+	  } = req.body;
   
-	  if (req.user.rank === 'officer' || req.user.rank === 'security' || req.user.rank === 'admin') {
+	  if (
+		req.user.rank === 'officer' ||
+		req.user.rank === 'security' ||
+		req.user.rank === 'admin'
+	  ) {
 		const reg = await Visitorlog.register({
 		  inmateName,
 		  visitorRelationship,
 		  timeIn,
 		  timeOut,
 		  officerno,
+		  firstname,
+		  lastname
 		});
   
 		res.status(200).send(reg);
 	  } else {
-		res.status(403).send("You are unauthorized");
+		res.status(403).send('You are unauthorized');
 	  }
 	} catch (error) {
 	  console.error(error);
 	  res.status(500).json({ error: 'Internal server error' });
 	}
   });
-	
+  
 
 /**
  * @swagger
