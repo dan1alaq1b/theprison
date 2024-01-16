@@ -399,6 +399,128 @@ app.post('/register/user', async (req, res) => {
 
 // app.use(verifyToken);
 
+// /**
+//  * @swagger
+//  * /create/visitorpass:
+//  *   post:
+//  *     summary : VisitorPass Creation
+//  *     security:
+//  *      - jwt: []
+//  *     tags:
+//  *     - User
+//  *     description: Create VisitorPass
+//  *     requestBody:
+//  *       required: true
+//  *       content:
+//  *         application/json:
+//  *           schema: 
+//  *             type: object
+//  *             properties:
+//  *               logno:
+//  *                 type: integer
+//  *               username: 
+//  *                 type: string
+//  *               inmateno: 
+//  *                 type: string
+//  *               dateofvisit:
+//  *                 type: string
+//  *               timein:
+//  *                 type: string
+//  *               timeout:
+//  *                 type: string
+//  *               purpose:
+//  *                 type: string
+//  *               officerno:
+//  *                 type: string
+
+//  *     responses:
+//  *       200:
+//  *         description: Successful registered
+//  *       401:
+//  *         description: There is an error during registration , Please try again
+//  */
+
+
+// //  app.post('/create/visitorpass', async (req, res) => {
+// // 	console.log(req.body);
+
+// // 	if (req.user.rank == "officer" || "security" || "admin"){
+// // 		const reg = await Visitorlog.register(req.body.logno, req.body.username, req.body.inmateno, req.body.dateofvisit, req.body.timein, req.body.timeout, req.body.purpose, req.body.officerno);
+// // 		res.status(200).send(reg)
+// // 	}
+// // 	else{
+// // 		res.status(403).send("You are unauthorized")
+// // 	}
+// // })
+
+// app.post('/create/visitorpass', async (req, res) => {
+// 	try {
+// 	  const reg = await Visitorlog.register(req.body.logno, req.body.username, req.body.inmateno, req.body.dateofvisit, req.body.timein, req.body.timeout, req.body.purpose, req.body.officerno);
+// 	  res.status(200).send(reg);
+  
+// 	  // Optionally, you can call the retrieval function here to display the created visitor pass immediately
+// 	  // const retrievedPass = await Visitorlog.retrieveVisitorPass(req.body.inmateno);
+// 	  // console.log('Created Visitor Pass:', retrievedPass);
+// 	} catch (error) {
+// 	  console.error(error);
+// 	  res.status(500).json({ error: 'Internal server error' });
+// 	}
+//   });
+
+// /**
+//  * @swagger
+//  * /create/visitorpass:
+//  *   post:
+//  *     summary : VisitorPass Creation
+//  *     security:
+//  *      - jwt: []
+//  *     tags:
+//  *     - User
+//  *     description: Create VisitorPass
+//  *     requestBody:
+//  *       required: true
+//  *       content:
+//  *         application/json:
+//  *           schema: 
+//  *             type: object
+//  *             properties:
+//  *               inmateno: 
+//  *                 type: string
+//  *               relationship:
+//  *                 type: string
+//  *               timein:
+//  *                 type: string
+//  *               timeout:
+//  *                 type: string
+//  *               officerno:
+//  *                 type: string
+//  *     responses:
+//  *       200:
+//  *         description: Successful registered
+//  *       401:
+//  *         description: There is an error during registration, Please try again
+//  */
+
+// app.post('/create/visitorpass', async (req, res) => {
+// 	try {
+// 	  const reg = await Visitorlog.register(
+// 		req.body.inmateno,
+// 		req.body.relationship,
+// 		req.body.timein,
+// 		req.body.timeout,
+// 		req.body.officerno
+// 	  );
+// 	  res.status(200).send(reg);
+  
+// 	  // Optionally, you can call the retrieval function here to display the created visitor pass immediately
+// 	  // const retrievedPass = await Visitorlog.retrieveVisitorPass(req.body.inmateno);
+// 	  // console.log('Created Visitor Pass:', retrievedPass);
+// 	} catch (error) {
+// 	  console.error(error);
+// 	  res.status(500).json({ error: 'Internal server error' });
+// 	}
+//   });
+
 /**
  * @swagger
  * /create/visitorpass:
@@ -416,56 +538,49 @@ app.post('/register/user', async (req, res) => {
  *           schema: 
  *             type: object
  *             properties:
- *               logno:
- *                 type: integer
- *               username: 
+ *               inmateName: 
  *                 type: string
- *               inmateno: 
+ *               visitorRelationship:
  *                 type: string
- *               dateofvisit:
+ *               timeIn:
  *                 type: string
- *               timein:
- *                 type: string
- *               timeout:
- *                 type: string
- *               purpose:
+ *               timeOut:
  *                 type: string
  *               officerno:
  *                 type: string
-
  *     responses:
  *       200:
  *         description: Successful registered
  *       401:
  *         description: There is an error during registration , Please try again
  */
-
-
-//  app.post('/create/visitorpass', async (req, res) => {
-// 	console.log(req.body);
-
-// 	if (req.user.rank == "officer" || "security" || "admin"){
-// 		const reg = await Visitorlog.register(req.body.logno, req.body.username, req.body.inmateno, req.body.dateofvisit, req.body.timein, req.body.timeout, req.body.purpose, req.body.officerno);
-// 		res.status(200).send(reg)
-// 	}
-// 	else{
-// 		res.status(403).send("You are unauthorized")
-// 	}
-// })
-
 app.post('/create/visitorpass', async (req, res) => {
 	try {
-	  const reg = await Visitorlog.register(req.body.logno, req.body.username, req.body.inmateno, req.body.dateofvisit, req.body.timein, req.body.timeout, req.body.purpose, req.body.officerno);
-	  res.status(200).send(reg);
+	  // Extracting relevant parameters from the request body
+	  const { inmateName, visitorRelationship, timeIn, timeOut, officerno } = req.body;
   
-	  // Optionally, you can call the retrieval function here to display the created visitor pass immediately
-	  // const retrievedPass = await Visitorlog.retrieveVisitorPass(req.body.inmateno);
-	  // console.log('Created Visitor Pass:', retrievedPass);
+	  // Checking user authorization
+	  if (req.user.rank === 'officer' || req.user.rank === 'security' || req.user.rank === 'admin') {
+		// Call the register function with the extracted parameters
+		const reg = await Visitorlog.register({
+		  inmateName,
+		  visitorRelationship,
+		  timeIn,
+		  timeOut,
+		  officerno,
+		});
+  
+		res.status(200).send(reg);
+	  } else {
+		res.status(403).send("You are unauthorized");
+	  }
 	} catch (error) {
 	  console.error(error);
 	  res.status(500).json({ error: 'Internal server error' });
 	}
   });
+  
+  
 
 /**
  * @swagger
