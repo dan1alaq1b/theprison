@@ -106,10 +106,15 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
  *     summary: Retrieve Issued Visitor Pass
  *     tags:
  *       - Visitor
- *     description: Retrieve issued visitor pass by entering inmate's name
+ *     description: Retrieve issued visitor pass by entering inmate's first and last name
  *     parameters:
  *       - in: query
- *         name: inmateName
+ *         name: firstname
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: lastname
  *         required: true
  *         schema:
  *           type: string
@@ -125,6 +130,128 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
  *       500:
  *         description: Internal server error
  */
+app.get('/retrieve/visitorpass', async (req, res) => {
+	try {
+	  // Check if the user is a visitor or has the necessary permissions
+	  if (req.user.rank === 'visitor' || req.user.rank === 'officer' || req.user.rank === 'security') {
+		const firstname = req.query.firstname;
+		const lastname = req.query.lastname;
+  
+		// Find the inmate based on the provided first and last names
+		const inmate = await Inmate.find({ firstname: firstname, lastname: lastname });
+  
+		if (!inmate) {
+		  return res.status(404).json({ error: 'Inmate not found' });
+		}
+  
+		// Add logic to retrieve the visitor pass based on the inmate's name
+		const retrievedPass = await Visitorlog.retrieveVisitorPass(`${firstname} ${lastname}`);
+  
+		if (retrievedPass) {
+		  res.status(200).json({ status: 'Visitor pass retrieved successfully', retrievedPass });
+		} else {
+		  res.status(404).json({ error: 'Visitor pass not found' });
+		}
+	  } else {
+		res.status(403).send('You are unauthorized');
+	  }
+	} catch (error) {
+	  console.error(error);
+	  res.status(500).json({ error: 'Internal server error' });
+	}
+  });
+  
+
+// /**
+//  * @swagger
+//  * /retrieve/visitorpass:
+//  *   get:
+//  *     summary: Retrieve Issued Visitor Pass
+//  *     tags:
+//  *       - Visitor
+//  *     description: Retrieve issued visitor pass by entering inmate's name
+//  *     parameters:
+//  *       - in: query
+//  *         name: inmateName
+//  *         required: true
+//  *         schema:
+//  *           type: string
+//  *     responses:
+//  *       200:
+//  *         description: Visitor pass retrieved successfully
+//  *       401:
+//  *         description: Unauthorized
+//  *       403:
+//  *         description: Forbidden
+//  *       404:
+//  *         description: Visitor pass not found
+//  *       500:
+//  *         description: Internal server error
+//  */
+
+// /**
+//  * @swagger
+//  * /retrieve/visitorpass:
+//  *   get:
+//  *     summary: Retrieve Issued Visitor Pass
+//  *     tags:
+//  *       - Visitor
+//  *     description: Retrieve issued visitor pass by entering inmate's name
+//  *     parameters:
+//  *       - in: query
+//  *         name: firstname
+//  *         required: true
+//  *         schema:
+//  *           type: string
+//  *       - in: query
+//  *         name: inmateName
+//  *         required: true
+//  *         schema:
+//  *           type: string
+//  *     responses:
+//  *       200:
+//  *         description: Visitor pass retrieved successfully
+//  *       401:
+//  *         description: Unauthorized
+//  *       403:
+//  *         description: Forbidden
+//  *       404:
+//  *         description: Visitor pass not found
+//  *       500:
+//  *         description: Internal server error
+//  */
+
+// app.get('/retrieve/visitorpass', async (req, res) => {
+// 	try {
+// 	  // Check if the user is a visitor or has the necessary permissions
+// 	  if (req.user.rank === 'visitor' || req.user.rank === 'officer' || req.user.rank === 'security') {
+// 		const inmateName = req.query.inmateName;
+// 		const firstname = req.query.firstname;
+  
+// 		// Find the inmate based on the provided first name
+// 		const inmate = await Inmate.find({ firstname: firstname });
+  
+// 		if (!inmate) {
+// 		  return res.status(404).json({ error: 'Inmate not found' });
+// 		}
+  
+// 		// Add logic to retrieve the visitor pass based on the inmate's name
+// 		const retrievedPass = await Visitorlog.retrieveVisitorPass(inmateName);
+  
+// 		if (retrievedPass) {
+// 		  res.status(200).json({ status: 'Visitor pass retrieved successfully', retrievedPass });
+// 		} else {
+// 		  res.status(404).json({ error: 'Visitor pass not found' });
+// 		}
+// 	  } else {
+// 		res.status(403).send('You are unauthorized');
+// 	  }
+// 	} catch (error) {
+// 	  console.error(error);
+// 	  res.status(500).json({ error: 'Internal server error' });
+// 	}
+//   });
+  
 
 //   app.get('/retrieve/visitorpass', async (req, res) => {
 // 	try {
@@ -149,28 +276,28 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // 	}
 //   });
 
-app.get('/retrieve/visitorpass', async (req, res) => {
-	try {
-	  // Check if the user is a visitor or has the necessary permissions
-	  if (req.user.rank === 'visitor' || req.user.rank === 'officer' || req.user.rank === 'security') {
-		const inmateName = req.query.inmateName;
+// app.get('/retrieve/visitorpass', async (req, res) => {
+// 	try {
+// 	  // Check if the user is a visitor or has the necessary permissions
+// 	  if (req.user.rank === 'visitor' || req.user.rank === 'officer' || req.user.rank === 'security') {
+// 		const inmateName = req.query.inmateName;
   
-		// Add logic to retrieve the visitor pass based on the inmate's name
-		const retrievedPass = await Visitorlog.retrieveVisitorPass(inmateName);
+// 		// Add logic to retrieve the visitor pass based on the inmate's name
+// 		const retrievedPass = await Visitorlog.retrieveVisitorPass(inmateName);
   
-		if (retrievedPass) {
-		  res.status(200).json({ status: 'Visitor pass retrieved successfully', retrievedPass });
-		} else {
-		  res.status(404).json({ error: 'Visitor pass not found' });
-		}
-	  } else {
-		res.status(403).send('You are unauthorized');
-	  }
-	} catch (error) {
-	  console.error(error);
-	  res.status(500).json({ error: 'Internal server error' });
-	}
-  });
+// 		if (retrievedPass) {
+// 		  res.status(200).json({ status: 'Visitor pass retrieved successfully', retrievedPass });
+// 		} else {
+// 		  res.status(404).json({ error: 'Visitor pass not found' });
+// 		}
+// 	  } else {
+// 		res.status(403).send('You are unauthorized');
+// 	  }
+// 	} catch (error) {
+// 	  console.error(error);
+// 	  res.status(500).json({ error: 'Internal server error' });
+// 	}
+//   });
 
 // /**
 //  * @swagger
