@@ -59,23 +59,27 @@ class Visitor {
 				
 	}
 	
-		static async update(username, name, age, gender, relation,telno){
-				visitors.updateOne({username:username},{$set:{
-				"Name": name,
-				"Age": age,
-				"Gender": gender,
-        "Relation": relation,
-		"PhoneNo": telno
-	}})
+	static async update(username, name, age, gender, relation,telno){
+			visitors.updateOne({username:username},{$set:{
+			"Name": name,
+			"Age": age,
+			"Gender": gender,
+            "Relation": relation,
+			"PhoneNo": telno
+			}})
 				return { status: "Information updated"}
-		}
-
-		static async delete(username) {
-			visitors.deleteOne({username: username})
-			return { status: "Visitor deleted!"}
-		}
-
 	}
+
+	static async delete(username) {
+		visitors.deleteOne({username: username})
+		return { status: "Visitor deleted!"}
+	}
+
+	static async getAllVisitors() {
+		const allVisitors = await visitors.find().toArray(); // Assuming 'visitors' is your collection
+		return allVisitors;
+	}
+}
 
 
 module.exports = Visitor;

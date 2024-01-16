@@ -106,10 +106,33 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
  *         description: Internal server error
  */
 
-  app.get('/retrieve/visitorpass', async (req, res) => {
+//   app.get('/retrieve/visitorpass', async (req, res) => {
+// 	try {
+// 	  // Check if the user is a visitor
+// 	  if (req.user.rank === 'visitor') {
+// 		const inmateName = req.query.inmateName;
+  
+// 		// Add logic to retrieve the visitor pass based on the inmate's name
+// 		const retrievedPass = await Visitorlog.retrieveVisitorPass(inmateName);
+  
+// 		if (retrievedPass) {
+// 		  res.status(200).json({ status: 'Visitor pass retrieved successfully', retrievedPass });
+// 		} else {
+// 		  res.status(404).json({ error: 'Visitor pass not found' });
+// 		}
+// 	  } else {
+// 		res.status(403).send('You are unauthorized');
+// 	  }
+// 	} catch (error) {
+// 	  console.error(error);
+// 	  res.status(500).json({ error: 'Internal server error' });
+// 	}
+//   });
+
+app.get('/retrieve/visitorpass', async (req, res) => {
 	try {
-	  // Check if the user is a visitor
-	  if (req.user.rank === 'visitor') {
+	  // Check if the user is a visitor or has the necessary permissions
+	  if (req.user.rank === 'visitor' || req.user.rank === 'officer' || req.user.rank === 'security') {
 		const inmateName = req.query.inmateName;
   
 		// Add logic to retrieve the visitor pass based on the inmate's name
@@ -129,36 +152,93 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 	}
   });
 
-
 /**
  * @swagger
- * /login/system:
- *   post:
- *     summary : System Login
+ * /login/user:
+ *   get:
+ *     summary: Get all users
+ *     tags:
+ *       - System
+ *     description: Retrieve all users from the database
  *     security:
  *      - jwt: []
- *     description: For User and Admin Login
- *     tags:
- *     - System
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema: 
- *             type: object
- *             properties:
- *               username: 
- *                 type: string
- *               password: 
- *                 type: string
  *     responses:
  *       200:
- *         description: Successful login
+ *         description: Users retrieved successfully
  *       401:
- *         description: Invalid username or password
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
  */
+app.get('/login/user', async (req, res) => {
+	try {
+	  const allUsers = await User.getAllUsers(); // Add this method in the User class
+	  res.status(200).json(allUsers);
+	} catch (error) {
+	  console.error(error);
+	  res.status(500).json({ error: 'Internal server error' });
+	}
+  });
+  
+/**
+ * @swagger
+ * /view/visitor:
+ *   get:
+ *     summary: View all visitors
+ *     tags:
+ *       - User
+ *     description: Retrieve all created visitors from the database
+ *     security:
+ *      - jwt: []
+ *     responses:
+ *       200:
+ *         description: Visitors retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+app.get('/view/visitor', async (req, res) => {
+	try {
+	  const allVisitors = await Visitor.getAllVisitors(); // Add this method in the Visitor class
+	  res.status(200).json(allVisitors);
+	} catch (error) {
+	  console.error(error);
+	  res.status(500).json({ error: 'Internal server error' });
+	}
+  });
+  
 
-app.post('/login/system', async (req, res) => {
+
+// /**
+//  * @swagger
+//  * /login/system:
+//  *   post:
+//  *     summary : System Login
+//  *     security:
+//  *      - jwt: []
+//  *     description: For User and Admin Login
+//  *     tags:
+//  *     - System
+//  *     requestBody:
+//  *       required: true
+//  *       content:
+//  *         application/json:
+//  *           schema: 
+//  *             type: object
+//  *             properties:
+//  *               username: 
+//  *                 type: string
+//  *               password: 
+//  *                 type: string
+//  *     responses:
+//  *       200:
+//  *         description: Successful login
+//  *       401:
+//  *         description: Invalid username or password
+//  */
+
+app.post('/login/user', async (req, res) => {
 	console.log(req.body);
 
 	let user = await User.login(req.body.username, req.body.password);
@@ -361,17 +441,31 @@ app.post('/register/user', async (req, res) => {
  */
 
 
- app.post('/create/visitorpass', async (req, res) => {
-	console.log(req.body);
+//  app.post('/create/visitorpass', async (req, res) => {
+// 	console.log(req.body);
 
-	if (req.user.rank == "officer" || "security" || "admin"){
-		const reg = await Visitorlog.register(req.body.logno, req.body.username, req.body.inmateno, req.body.dateofvisit, req.body.timein, req.body.timeout, req.body.purpose, req.body.officerno);
-		res.status(200).send(reg)
+// 	if (req.user.rank == "officer" || "security" || "admin"){
+// 		const reg = await Visitorlog.register(req.body.logno, req.body.username, req.body.inmateno, req.body.dateofvisit, req.body.timein, req.body.timeout, req.body.purpose, req.body.officerno);
+// 		res.status(200).send(reg)
+// 	}
+// 	else{
+// 		res.status(403).send("You are unauthorized")
+// 	}
+// })
+
+app.post('/create/visitorpass', async (req, res) => {
+	try {
+	  const reg = await Visitorlog.register(req.body.logno, req.body.username, req.body.inmateno, req.body.dateofvisit, req.body.timein, req.body.timeout, req.body.purpose, req.body.officerno);
+	  res.status(200).send(reg);
+  
+	  // Optionally, you can call the retrieval function here to display the created visitor pass immediately
+	  // const retrievedPass = await Visitorlog.retrieveVisitorPass(req.body.inmateno);
+	  // console.log('Created Visitor Pass:', retrievedPass);
+	} catch (error) {
+	  console.error(error);
+	  res.status(500).json({ error: 'Internal server error' });
 	}
-	else{
-		res.status(403).send("You are unauthorized")
-	}
-})
+  });
 
 /**
  * @swagger

@@ -92,12 +92,17 @@ class User {
     	return { loginStatus: loginResult.status };
 	}
 */
-
+/*
 	static async getAllUsers() {
 		return await users.find().toArray();
   	}
-  
-	}
+*/  
+static async getAllUsers() {
+    const allUsers = await users.find().toArray();
+    return allUsers;
+  }
+
+}
 
 
 module.exports = User;
