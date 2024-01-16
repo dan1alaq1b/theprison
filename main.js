@@ -180,63 +180,62 @@ app.get('/login/user', async (req, res) => {
 	}
   });
   
-/**
- * @swagger
- * /view/visitor:
- *   get:
- *     summary: View all visitors
- *     tags:
- *       - User
- *     description: Retrieve all created visitors from the database
- *     security:
- *      - jwt: []
- *     responses:
- *       200:
- *         description: Visitors retrieved successfully
- *       401:
- *         description: Unauthorized
- *       500:
- *         description: Internal server error
- */
-app.get('/view/visitor', async (req, res) => {
-	try {
-	  const allVisitors = await Visitor.getAllVisitors(); // Add this method in the Visitor class
-	  res.status(200).json(allVisitors);
-	} catch (error) {
-	  console.error(error);
-	  res.status(500).json({ error: 'Internal server error' });
-	}
-  });
-  
-
-
 // /**
 //  * @swagger
-//  * /login/system:
-//  *   post:
-//  *     summary : System Login
+//  * /view/visitor:
+//  *   get:
+//  *     summary: View all visitors
+//  *     tags:
+//  *       - User
+//  *     description: Retrieve all created visitors from the database
 //  *     security:
 //  *      - jwt: []
-//  *     description: For User and Admin Login
-//  *     tags:
-//  *     - System
-//  *     requestBody:
-//  *       required: true
-//  *       content:
-//  *         application/json:
-//  *           schema: 
-//  *             type: object
-//  *             properties:
-//  *               username: 
-//  *                 type: string
-//  *               password: 
-//  *                 type: string
 //  *     responses:
 //  *       200:
-//  *         description: Successful login
+//  *         description: Visitors retrieved successfully
 //  *       401:
-//  *         description: Invalid username or password
+//  *         description: Unauthorized
+//  *       500:
+//  *         description: Internal server error
 //  */
+// app.get('/view/visitor', async (req, res) => {
+// 	try {
+// 	  const allVisitors = await Visitor.getAllVisitors(); // Add this method in the Visitor class
+// 	  res.status(200).json(allVisitors);
+// 	} catch (error) {
+// 	  console.error(error);
+// 	  res.status(500).json({ error: 'Internal server error' });
+// 	}
+//   });
+  
+
+/**
+ * @swagger
+ * /login/system:
+ *   post:
+ *     summary : System Login
+ *     security:
+ *      - jwt: []
+ *     description: For User and Admin Login
+ *     tags:
+ *     - System
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: 
+ *             type: object
+ *             properties:
+ *               username: 
+ *                 type: string
+ *               password: 
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Successful login
+ *       401:
+ *         description: Invalid username or password
+ */
 
 app.post('/login/user', async (req, res) => {
 	console.log(req.body);
@@ -259,6 +258,16 @@ app.post('/login/user', async (req, res) => {
 
 	});
 })
+
+app.get('/view/visitor', async (req, res) => {
+	try {
+	  const allVisitors = await Visitor.getAllVisitors(); // Add this method in the Visitor class
+	  res.status(200).json(allVisitors);
+	} catch (error) {
+	  console.error(error);
+	  res.status(500).json({ error: 'Internal server error' });
+	}
+  });
 
 // /**
 //  * @swagger
