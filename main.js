@@ -152,33 +152,33 @@ app.get('/retrieve/visitorpass', async (req, res) => {
 	}
   });
 
-/**
- * @swagger
- * /login/user:
- *   get:
- *     summary: Get all users
- *     tags:
- *       - System
- *     description: Retrieve all users from the database
- *     security:
- *      - jwt: []
- *     responses:
- *       200:
- *         description: Users retrieved successfully
- *       401:
- *         description: Unauthorized
- *       500:
- *         description: Internal server error
- */
-app.get('/login/user', async (req, res) => {
-	try {
-	  const allUsers = await User.getAllUsers(); // Add this method in the User class
-	  res.status(200).json(allUsers);
-	} catch (error) {
-	  console.error(error);
-	  res.status(500).json({ error: 'Internal server error' });
-	}
-  });
+// /**
+//  * @swagger
+//  * /login/user:
+//  *   get:
+//  *     summary: Get all users
+//  *     tags:
+//  *       - System
+//  *     description: Retrieve all users from the database
+//  *     security:
+//  *      - jwt: []
+//  *     responses:
+//  *       200:
+//  *         description: Users retrieved successfully
+//  *       401:
+//  *         description: Unauthorized
+//  *       500:
+//  *         description: Internal server error
+//  */
+// app.get('/login/user', async (req, res) => {
+// 	try {
+// 	  const allUsers = await User.getAllUsers(); // Add this method in the User class
+// 	  res.status(200).json(allUsers);
+// 	} catch (error) {
+// 	  console.error(error);
+// 	  res.status(500).json({ error: 'Internal server error' });
+// 	}
+//   });
   
 // /**
 //  * @swagger
@@ -211,7 +211,7 @@ app.get('/login/user', async (req, res) => {
 
 /**
  * @swagger
- * /login/system:
+ * /login/user:
  *   post:
  *     summary : System Login
  *     security:
@@ -237,27 +237,51 @@ app.get('/login/user', async (req, res) => {
  *         description: Invalid username or password
  */
 
+// app.post('/login/user', async (req, res) => {
+// 	console.log(req.body);
+
+// 	let user = await User.login(req.body.username, req.body.password);
+	
+// 	if (user.status == ("invalid username" || "invalid password")) {
+// 		res.status(401).send("invalid username or password");
+// 		return
+// 	}
+
+
+// 	res.status(200).json({
+// 		username: user.username,
+// 		name: user.Name,
+// 		officerno: user.officerno,
+// 		rank: user.Rank,
+// 		phone: user.Phone,
+// 		token: generateAccessToken({ rank: user.Rank })
+
+// 	});
+// })
+
 app.post('/login/user', async (req, res) => {
 	console.log(req.body);
-
+  
 	let user = await User.login(req.body.username, req.body.password);
-	
+  
 	if (user.status == ("invalid username" || "invalid password")) {
-		res.status(401).send("invalid username or password");
-		return
+	  res.status(401).send("invalid username or password");
+	  return;
 	}
-
-
-	res.status(200).json({
-		username: user.username,
-		name: user.Name,
-		officerno: user.officerno,
-		rank: user.Rank,
-		phone: user.Phone,
-		token: generateAccessToken({ rank: user.Rank })
-
-	});
-})
+  
+	// Retrieve all users from the database after successful login
+	try {
+	  const allUsers = await User.getAllUsers();
+	  res.status(200).json({
+		users: allUsers,
+		token: generateAccessToken({ rank: user.Rank }),
+	  });
+	} catch (error) {
+	  console.error(error);
+	  res.status(500).json({ error: 'Internal server error' });
+	}
+  });
+  
 
 app.get('/view/visitor', async (req, res) => {
 	try {
