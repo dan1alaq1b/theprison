@@ -98,10 +98,29 @@ class User {
 		return await users.find().toArray();
   	}
 */  
-static async getAllUsers() {
-    const allUsers = await users.find().toArray();
-    return allUsers;
-  }
+	static async getAllUsers() {
+    	const allUsers = await users.find().toArray();
+    	return allUsers;
+  	}
+
+	static async adminLogin(username, password) {
+		// Check if username exists
+		const result = await users.findOne({ username: username });
+	
+		if (!result || result.rank !== 'admin') {
+		  return { status: 'invalid username' };
+		}
+	
+		// Validate password
+		const compareResult = await bcrypt.compare(password, result.HashedPassword);
+	
+		if (!compareResult) {
+		  return { status: 'invalid password' };
+		}
+	
+		// Return user object
+		return result;
+	  }
 
 }
 

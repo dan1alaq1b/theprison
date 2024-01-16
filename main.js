@@ -138,19 +138,14 @@ app.get('/retrieve/visitorpass', async (req, res) => {
 	}
   });
 
-
-  
-
 /**
  * @swagger
- * /login/user:
+ * /login/system:
  *   post:
- *     summary : System Login
- *     security:
- *      - jwt: []
+ *     summary: System Login
  *     description: For User and Admin Login
  *     tags:
- *     - System
+ *       - System
  *     requestBody:
  *       required: true
  *       content:
@@ -165,34 +160,375 @@ app.get('/retrieve/visitorpass', async (req, res) => {
  *     responses:
  *       200:
  *         description: Successful login
+ *         content:
+ *           application/json:
+ *             example:
+ *               users: []
+ *               inmates: []
+ *               token: <token>
+ *               role: <user/admin>
  *       401:
  *         description: Invalid username or password
  */
 
-
-
-app.post('/login/user', async (req, res) => {
+app.post('/login/system', async (req, res) => {
 	console.log(req.body);
   
 	let user = await User.login(req.body.username, req.body.password);
+	let admin = await User.adminLogin(req.body.username, req.body.password);
   
-	if (user.status == ("invalid username" || "invalid password")) {
-	  res.status(401).send("invalid username or password");
+	if (user.status === 'invalid username' && admin.status === 'invalid username') {
+	  res.status(401).send('Invalid username or password');
 	  return;
 	}
   
-	// Retrieve all users from the database after successful login
-	try {
+	if (user.status === 'invalid password' && admin.status === 'invalid password') {
+	  res.status(401).send('Invalid username or password');
+	  return;
+	}
+  
+	if (user.rank) {
 	  const allUsers = await User.getAllUsers();
+	  const allInmates = await Inmate.getAllInmates();
 	  res.status(200).json({
 		users: allUsers,
-		token: generateAccessToken({ rank: user.Rank }),
+		inmates: allInmates,
+		token: generateAccessToken({ rank: user.rank }),
+		role: 'user'
 	  });
-	} catch (error) {
-	  console.error(error);
-	  res.status(500).json({ error: 'Internal server error' });
+	} else if (admin.rank) {
+	  const allUsers = await User.getAllUsers();
+	  const allInmates = await Inmate.getAllInmates();
+	  res.status(200).json({
+		users: allUsers,
+		inmates: allInmates,
+		token: generateAccessToken({ rank: admin.rank }),
+		role: 'admin'
+	  });
 	}
   });
+  
+/**
+ * @swagger
+ * /delete/user:
+ *   delete:
+ *     summary: Delete User
+ *     security:
+ *      - jwt: []
+ *     tags:
+ *       - Admin
+ *     description: Delete User
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: 
+ *             type: object
+ *             properties:
+ *               username: 
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Successful delete
+ *       401:
+ *         description: There is an error during deleting , Please try again
+ */
+app.delete('/delete/user', async (req, res) => {
+	if (req.user.rank === 'admin') {
+	  const del = await User.delete(req.body.username);
+	  res.status(200).send(del);
+	} else {
+	  res.status(403).send('You are unauthorized');
+	}
+  });
+  
+  /**
+   * @swagger
+   * /update/user:
+   *   patch:
+   *     summary: Update User Information
+   *     security:
+   *      - jwt: []
+   *     tags:
+   *       - Admin
+   *     description: Update User Information
+   *     parameters:
+   *       - in: path
+   *         name: username
+   *         required: true
+   *         schema:
+   *           type: string
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema: 
+   *             type: object
+   *             properties:
+   *               name:
+   *                 type: string
+   *               officerno:
+   *                 type: string
+   *               rank:
+   *                 type: string
+   *               phone:
+   *                 type: string
+   *     responses:
+   *       200:
+   *         description: Information updated
+   *       401:
+   *         description: There is an error during updating , Please try again
+   */
+  app.patch('/update/user/:username', async (req, res) => {
+	const username = req.params.username;
+	if (req.user.rank === 'admin') {
+	  const updatedInfo = await User.update(
+		username,
+		req.body.name,
+		req.body.officerno,
+		req.body.rank,
+		req.body.phone
+	  );
+	  res.status(200).send(updatedInfo);
+	} else {
+	  res.status(403).send('You are unauthorized');
+	}
+  });
+  
+  /**
+   * @swagger
+   * /delete/visitorpass:
+   *   delete:
+   *     summary: Delete VisitorPass
+   *     security:
+   *      - jwt: []
+   *     tags:
+   *       - User
+   *     description: Delete VisitorPass
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema: 
+   *             type: object
+   *             properties:
+   *               logno: 
+   *                 type: integer
+   *     responses:
+   *       200:
+   *         description: Successful delete
+   *       401:
+   *         description: You are unauthorized
+   */
+  app.delete('/delete/visitorpass', async (req, res) => {
+	if (req.user.rank === 'officer' || req.user.rank === 'security' || req.user.rank === 'admin') {
+	  const del = await VisitorPass.delete(req.body.logno);
+	  res.status(200).send(del);
+	} else {
+	  res.status(403).send('You are unauthorized');
+	}
+  });
+  
+  /**
+   * @swagger
+   * /update/visitorpass:
+   *   patch:
+   *     summary: Update VisitorPass
+   *     security:
+   *      - jwt: []
+   *     tags:
+   *       - User
+   *     description: Update VisitorPass
+   *     parameters:
+   *       - in: path
+   *         name: logno
+   *         required: true
+   *         schema:
+   *           type: integer
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema: 
+   *             type: object
+   *             properties:
+   *               firstname:
+   *                 type: string
+   *               lastname:
+   *                 type: string
+   *               visitorRelationship:
+   *                 type: string
+   *               timeIn:
+   *                 type: string
+   *               timeOut:
+   *                 type: string
+   *               officerno:
+   *                 type: string
+   *     responses:
+   *       200:
+   *         description: Information updated
+   *       401:
+   *         description: You are unauthorized
+   */
+  app.patch('/update/visitorpass/:logno', async (req, res) => {
+	const logno = req.params.logno;
+	if (req.user.rank === 'officer' || req.user.rank === 'security' || req.user.rank === 'admin') {
+	  const updatedInfo = await VisitorPass.update(
+		logno,
+		req.body.firstname,
+		req.body.lastname,
+		req.body.visitorRelationship,
+		req.body.timeIn 
+		req.body.timeOut,
+      	req.body.officerno 
+	);
+	res.status(200).send(updatedInfo);
+  } else {
+    res.status(403).send('You are unauthorized');
+  }
+});
+
+/**
+ * @swagger
+ * /delete/inmate:
+ *   delete:
+ *     summary: Delete Inmate
+ *     security:
+ *      - jwt: []
+ *     tags:
+ *       - User
+ *     description: Delete Inmate
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: 
+ *             type: object
+ *             properties:
+ *               inmateno: 
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Successful delete
+ *       401:
+ *         description: You are unauthorized
+ */
+app.delete('/delete/inmate', async (req, res) => {
+	if (req.user.rank === 'officer' || req.user.rank === 'security' || req.user.rank === 'admin') {
+	  const del = await Inmate.delete(req.body.inmateno);
+	  res.status(200).send(del);
+	} else {
+	  res.status  (403).send('You are unauthorized');
+	}
+  });
+  
+  /**
+   * @swagger
+   * /update/inmate:
+   *   patch:
+   *     summary: Update Inmate Information
+   *     security:
+   *      - jwt: []
+   *     tags:
+   *       - User
+   *     description: Update Inmate Information
+   *     parameters:
+   *       - in: path
+   *         name: inmateno
+   *         required: true
+   *         schema:
+   *           type: string
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema: 
+   *             type: object
+   *             properties:
+   *               firstname:
+   *                 type: string
+   *               lastname:
+   *                 type: string
+   *               age:
+   *                 type: integer
+   *               gender:
+   *                 type: string
+   *               guilty:
+   *                 type: string
+   *     responses:
+   *       200:
+   *         description: Information updated
+   *       401:
+   *         description: You are unauthorized
+   */
+  app.patch('/update/inmate', async (req, res) => {
+	if (req.user.rank === 'officer' || req.user.rank === 'security' || req.user.rank === 'admin') {
+	  const updatedInfo = await Inmate.update(
+		req.body.inmateno,
+		req.body.firstname,
+		req.body.lastname,
+		req.body.age,
+		req.body.gender,
+		req.body.guilty
+	  );
+	  res.status(200).send(updatedInfo);
+	} else {
+	  res.status(403).send('You are unauthorized');
+	}
+  });
+
+// /**
+//  * @swagger
+//  * /login/user:
+//  *   post:
+//  *     summary : System Login
+//  *     security:
+//  *      - jwt: []
+//  *     description: For User and Admin Login
+//  *     tags:
+//  *     - System
+//  *     requestBody:
+//  *       required: true
+//  *       content:
+//  *         application/json:
+//  *           schema: 
+//  *             type: object
+//  *             properties:
+//  *               username: 
+//  *                 type: string
+//  *               password: 
+//  *                 type: string
+//  *     responses:
+//  *       200:
+//  *         description: Successful login
+//  *       401:
+//  *         description: Invalid username or password
+//  */
+
+
+
+// app.post('/login/user', async (req, res) => {
+// 	console.log(req.body);
+  
+// 	let user = await User.login(req.body.username, req.body.password);
+  
+// 	if (user.status == ("invalid username" || "invalid password")) {
+// 	  res.status(401).send("invalid username or password");
+// 	  return;
+// 	}
+  
+// 	// Retrieve all users from the database after successful login
+// 	try {
+// 	  const allUsers = await User.getAllUsers();
+// 	  res.status(200).json({
+// 		users: allUsers,
+// 		token: generateAccessToken({ rank: user.Rank }),
+// 	  });
+// 	} catch (error) {
+// 	  console.error(error);
+// 	  res.status(500).json({ error: 'Internal server error' });
+// 	}
+//   });
   
 
 app.get('/view/visitor', async (req, res) => {
@@ -384,82 +720,82 @@ app.post('/register/inmate', verifyToken, async (req, res) => {
   
 
 
-/**
- * @swagger
- * /delete/VisitorPass:
- *   delete:
- *     summary : Delete VisitorPass
- *     security:
- *      - jwt: []
- *     tags:
- *     - User
- *     description: Delete VisitorPass
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema: 
- *             type: object
- *             properties:
- *               logno: 
- *                 type: integer
- *               
- *     responses:
- *       200:
- *         description: Successful delete
- *       401:
- *         description: There is an error during deleting , Please try again
- */
+// /**
+//  * @swagger
+//  * /delete/VisitorPass:
+//  *   delete:
+//  *     summary : Delete VisitorPass
+//  *     security:
+//  *      - jwt: []
+//  *     tags:
+//  *     - User
+//  *     description: Delete VisitorPass
+//  *     requestBody:
+//  *       required: true
+//  *       content:
+//  *         application/json:
+//  *           schema: 
+//  *             type: object
+//  *             properties:
+//  *               logno: 
+//  *                 type: integer
+//  *               
+//  *     responses:
+//  *       200:
+//  *         description: Successful delete
+//  *       401:
+//  *         description: There is an error during deleting , Please try again
+//  */
 
- app.delete('/delete/visitorpass', async (req, res) => {
-	if (req.user.rank == "officer" || "security" || "admin"){
-		const del = await Visitorlog.delete(req.body.logno)
-		res.status(200).send(del)
-	}
-	else{
-		res.status(403).send("You are unauthorized")
-	}
-})
+//  app.delete('/delete/visitorpass', async (req, res) => {
+// 	if (req.user.rank == "officer" || "security" || "admin"){
+// 		const del = await Visitorlog.delete(req.body.logno)
+// 		res.status(200).send(del)
+// 	}
+// 	else{
+// 		res.status(403).send("You are unauthorized")
+// 	}
+// })
 
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
-});
+// app.listen(port, () => {
+//   console.log(`Example app listening on port ${port}`);
+// });
 
-app.post('/create/customer/admin', verifyToken, async (req, res) => {
-  let result = createcustomer(
-    req.body.customername,
-    req.body.idproof
-  ); 
-  res.send(result);
-});
+// app.post('/create/customer/admin', verifyToken, async (req, res) => {
+//   let result = createcustomer(
+//     req.body.customername,
+//     req.body.idproof
+//   ); 
+//   res.send(result);
+// });
 
-app.post('/add/sensor',async(req,res)=>{
-  let result = addsensor(
-    req.body.sensor,
-    req.body.date,
-    req.body.time,
-    req.body.value,
-    req.body.id,
-    req.body.name
-  );
-  res.send(result) 
-});
+// app.post('/add/sensor',async(req,res)=>{
+//   let result = addsensor(
+//     req.body.sensor,
+//     req.body.date,
+//     req.body.time,
+//     req.body.value,
+//     req.body.id,
+//     req.body.name
+//   );
+//   res.send(result) 
+// });
 
-function addsensor(reqsensor, reqdate, reqtime, reqvalue, reqname, reqidproof) {
-  client.db().collection().insertMany({
-      "sensor": reqsensor,
-      "date": reqdate,
-      "time": reqtime,
-      "value": reqvalue,
-      "name": reqname,
-      "id": reqidproof
+// function addsensor(reqsensor, reqdate, reqtime, reqvalue, reqname, reqidproof) {
+//   client.db().collection().insertMany({
+//       "sensor": reqsensor,
+//       "date": reqdate,
+//       "time": reqtime,
+//       "value": reqvalue,
+//       "name": reqname,
+//       "id": reqidproof
 
-    });
-    return "sensor added";
-  }
+//     });
+//     return "sensor added";
+//   }
 
-app.patch('/update/value/:id',async(req,res)=>{
-  const search = req.params.id;
-  const value = req.body.value;
-  await client.db().collection().updateOne({id: search},{$set:value});
-}) 
+// app.patch('/update/value/:id',async(req,res)=>{
+//   const search = req.params.id;
+//   const value = req.body.value;
+//   await client.db().collection().updateOne({id: search},{$set:value});
+// }) 
