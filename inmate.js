@@ -7,31 +7,31 @@ class Inmate {
 
 	static async register(inmateno, firstname, lastname,  age, gender, guilty) {
 		// TODO: Check if Inmateno exists
-		const res = await inmate.findOne({ Inmateno: inmateno })
+		const res = await inmate.findOne({ Inmateno: inmateno });
 
 			if (res){
-				return { status: "duplicate Inmateno"}
+				return { status: "duplicate Inmateno"};
 			}
 			// TODO: Save inmate to database
 			await inmate.insertOne({
-              "Inmateno": inmateno,
-							"Firstname": firstname,
-							"Lastname": lastname,
-							"Age": age,
-							"Gender": gender,
-							"Guilty": guilty,						
+				"Inmateno": inmateno,
+				"Firstname": firstname,
+				"Lastname": lastname,
+				"Age": age,
+				"Gender": gender,
+				"Guilty": guilty						
             });
-            return { status: "Succesfully register inmate"}
+            return { status: "Succesfully register inmate"};
 	}
 
 		static async update(inmateno, firstname, lastname,  age, gender, guilty){
-				await inmate.updateOne({Inmateno: inmateno},{$set:{
-              "Firstname": firstname,
-              "Lastname": lastname,
-              "Age": age,
-              "Gender": gender,		
-			  "Guilty": guilty, }})
-							return { status: "Information updated"}
+			await inmate.updateOne({Inmateno: inmateno},{$set:{
+				"Firstname": firstname,
+              	"Lastname": lastname,
+             	"Age": age,
+              	"Gender": gender,		
+			  	"Guilty": guilty, }})
+			return { status: "Information updated"}
 		}
 
 		static async delete(inmateno) {
