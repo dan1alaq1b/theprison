@@ -1,0 +1,702 @@
+i still got error when creating a visitor pass and registering a new inmate. the errors are the same "you are not authorized".
+
+this is my main.js code:
+const MongoClient = require("mongodb").MongoClient;
+const User = require("./user.js");
+const Visitor = require("./visitor.js");
+const Inmate = require("./inmate.js");
+const Visitorlog = require("./visitorlog.js")
+
+
+MongoClient.connect(
+	// TODO: Connection 
+	//"mongodb+srv://m001-student:Dan_2218@sandbox.yldg8.mongodb.net/    ", 
+	"mongodb+srv://danial:779hRsy0RVMRRRlP@gulag0.ij0pzbn.mongodb.net/?retryWrites=true&w=majority",
+	{ useNewUrlParser: true },
+).catch(err => {
+	console.error(err.stack)
+	process.exit(1)
+}).then(async client => {
+	console.log('Connected to MongoDB');
+	User.injectDB(client);
+	Visitor.injectDB(client);
+	Inmate.injectDB(client);
+	Visitorlog.injectDB(client);
+})
+
+const express = require('express')
+const app = express()
+const port = process.env.PORT || 3030
+
+const jwt = require ('jsonwebtoken');
+function generateAccessToken(payload){
+	return jwt.sign(payload, "secretcode", { expiresIn: '1d' }); //expiration can be 'd' (day), 'h' (hour), 'm' (minute), 's' (second)
+}
+
+function verifyToken(req, res, next) {
+	const authHeader = req.headers['authorization']
+	const token = authHeader && authHeader.split(' ')[1]
+
+	if (token == null) return res.sendStatus(401)
+
+	jwt.verify(token, "secretcode", (err, user) => {
+		console.log(err);
+
+		if (err) return res.sendStatus(403)
+
+		req.user = user
+
+		next()
+	})
+}
+
+app.use(express.json())
+app.use(express.urlencoded({ extended: false }))
+
+
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsdoc = require('swagger-jsdoc');
+const options = {
+	definition: {
+		openapi: '3.0.0',
+		info: {
+			title: 'Prison Visitor Management System',
+			version: '1.0.11',
+		},
+		components:{
+			securitySchemes:{
+				jwt:{
+					type: 'http',
+					scheme: 'bearer',
+					in: "header",
+					bearerFormat: 'JWT'
+				}
+			},
+		security:[{
+			"jwt": []
+		}]
+		}
+	},
+	apis: ['./main.js'], 
+};
+const swaggerSpec = swaggerJsdoc(options);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+/**
+ * @swagger
+ * /retrieve/visitorpass:
+ *   get:
+ *     summary: Retrieve Issued Visitor Pass
+ *     tags:
+ *       - Visitor
+ *     description: Retrieve issued visitor pass by entering inmate's name
+ *     parameters:
+ *       - in: query
+ *         name: inmateName
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Visitor pass retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Visitor pass not found
+ *       500:
+ *         description: Internal server error
+ */
+
+
+
+app.get('/retrieve/visitorpass', async (req, res) => {
+	try {
+	  // Check if the user is a visitor or has the necessary permissions
+	  if (req.user.rank === 'visitor' || req.user.rank === 'officer' || req.user.rank === 'security') {
+		const inmateName = req.query.inmateName;
+  
+		// Add logic to retrieve the visitor pass based on the inmate's name
+		const retrievedPass = await Visitorlog.retrieveVisitorPass(inmateName);
+  
+		if (retrievedPass) {
+		  res.status(200).json({ status: 'Visitor pass retrieved successfully', retrievedPass });
+		} else {
+		  res.status(404).json({ error: 'Visitor pass not found' });
+		}
+	  } else {
+		res.status(403).send('You are unauthorized');
+	  }
+	} catch (error) {
+	  console.error(error);
+	  res.status(500).json({ error: 'Internal server error' });
+	}
+  });
+
+
+/**
+ * @swagger
+ * /login/user:
+ *   post:
+ *     summary : System Login
+ *     security:
+ *      - jwt: []
+ *     description: For User and Admin Login
+ *     tags:
+ *     - System
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: 
+ *             type: object
+ *             properties:
+ *               username: 
+ *                 type: string
+ *               password: 
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Successful login
+ *       401:
+ *         description: Invalid username or password
+ */
+
+
+
+app.post('/login/user', async (req, res) => {
+	console.log(req.body);
+  
+	let user = await User.login(req.body.username, req.body.password);
+  
+	if (user.status == ("invalid username" || "invalid password")) {
+	  res.status(401).send("invalid username or password");
+	  return;
+	}
+  
+	// Retrieve all users from the database after successful login
+	try {
+	  const allUsers = await User.getAllUsers();
+	  res.status(200).json({
+		users: allUsers,
+		token: generateAccessToken({ rank: user.Rank }),
+	  });
+	} catch (error) {
+	  console.error(error);
+	  res.status(500).json({ error: 'Internal server error' });
+	}
+  });
+  
+
+app.get('/view/visitor', async (req, res) => {
+	try {
+	  const allVisitors = await Visitor.getAllVisitors(); // Add this method in the Visitor class
+	  res.status(200).json(allVisitors);
+	} catch (error) {
+	  console.error(error);
+	  res.status(500).json({ error: 'Internal server error' });
+	}
+  });
+
+
+
+//--------------------REGISTER OFFICER (USER)--------------------
+/**
+ * @swagger
+ * /register/user:
+ *   post:
+ *     summary : User Account Registration
+ *     security:
+ *      - jwt: []
+ *     description: User Registration
+ *     tags:
+ *     - Admin
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: 
+ *             type: object
+ *             properties:
+ *               username: 
+ *                 type: string
+ *               password: 
+ *                 type: string
+ *               name: 
+ *                 type: string
+ *               officerno:
+ *                 type: string
+ *               rank:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Successful registered
+ *       401:
+ *         description: There is an error during registration , Please try again
+ */
+
+app.post('/register/user', async (req, res) => {
+	console.log(req.body);
+	
+	const reg = await User.register(req.body.username, req.body.password, req.body.name, req.body.officerno, req.body.rank, req.body.phone);
+	console.log(reg);
+
+	res.json({reg})
+})
+
+
+
+/**
+ * @swagger
+ * /create/visitorpass:
+ *   post:
+ *     summary : VisitorPass Creation
+ *     security:
+ *      - jwt: []
+ *     tags:
+ *     - User
+ *     description: Create VisitorPass
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: 
+ *             type: object
+ *             properties:
+ *               inmateName: 
+ *                 type: string
+ *               visitorRelationship:
+ *                 type: string
+ *               timeIn:
+ *                 type: string
+ *               timeOut:
+ *                 type: string
+ *               officerno:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Successful registered
+ *       401:
+ *         description: There is an error during registration , Please try again
+ */
+
+  
+app.post('/create/visitorpass', async (req, res) => {
+	try {
+	  const { inmateName, visitorRelationship, timeIn, timeOut, officerno } = req.body;
+  
+	  if (req.user.rank === 'officer' || req.user.rank === 'security' || req.user.rank === 'admin') {
+		const reg = await Visitorlog.register({
+		  inmateName,
+		  visitorRelationship,
+		  timeIn,
+		  timeOut,
+		  officerno,
+		});
+  
+		res.status(200).send(reg);
+	  } else {
+		res.status(403).send("You are unauthorized");
+	  }
+	} catch (error) {
+	  console.error(error);
+	  res.status(500).json({ error: 'Internal server error' });
+	}
+  });
+	
+
+/**
+ * @swagger
+ * /register/inmate:
+ *   post:
+ *     summary : Inmate Registration
+ *     security:
+ *      - jwt: []
+ *     tags:
+ *     - User
+ *     description: Inmate Registration
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: 
+ *             type: object
+ *             properties:
+ *               inmateno: 
+ *                 type: string
+ *               firstname: 
+ *                 type: string
+ *               lastname: 
+ *                 type: string
+ *               age:
+ *                 type: integer
+ *               gender:
+ *                 type: string
+ *               guilty:
+ *                 type: string
+ *              
+ *     responses:
+ *       200:
+ *         description: Successful registered
+ *       401:
+ *         description: There is an error during registration , Please try again
+ */
+
+
+
+app.post('/register/inmate', async (req, res) => {
+	try {
+	  console.log(req.body);
+	  
+	  if (req.user && (req.user.rank === 'officer' || req.user.rank === 'security' || req.user.rank === 'admin')) {
+		const reg = await Inmate.register(req.body.inmateno, req.body.firstname, req.body.lastname, req.body.age, req.body.gender, req.body.guilty);
+		res.status(200).send(reg);
+	  } else {
+		res.status(403).send("You are unauthorized");
+	  }
+	} catch (error) {
+	  console.error(error);
+	  res.status(500).json({ error: 'Internal server error' });
+	}
+  });
+  
+
+
+
+/**
+ * @swagger
+ * /delete/VisitorPass:
+ *   delete:
+ *     summary : Delete VisitorPass
+ *     security:
+ *      - jwt: []
+ *     tags:
+ *     - User
+ *     description: Delete VisitorPass
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: 
+ *             type: object
+ *             properties:
+ *               logno: 
+ *                 type: integer
+ *               
+ *     responses:
+ *       200:
+ *         description: Successful delete
+ *       401:
+ *         description: There is an error during deleting , Please try again
+ */
+
+ app.delete('/delete/visitorpass', async (req, res) => {
+	if (req.user.rank == "officer" || "security" || "admin"){
+		const del = await Visitorlog.delete(req.body.logno)
+		res.status(200).send(del)
+	}
+	else{
+		res.status(403).send("You are unauthorized")
+	}
+})
+
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`);
+});
+
+app.post('/create/customer/admin', verifyToken, async (req, res) => {
+  let result = createcustomer(
+    req.body.customername,
+    req.body.idproof
+  ); 
+  res.send(result);
+});
+
+app.post('/add/sensor',async(req,res)=>{
+  let result = addsensor(
+    req.body.sensor,
+    req.body.date,
+    req.body.time,
+    req.body.value,
+    req.body.id,
+    req.body.name
+  );
+  res.send(result) 
+});
+
+function addsensor(reqsensor, reqdate, reqtime, reqvalue, reqname, reqidproof) {
+  client.db().collection().insertMany({
+      "sensor": reqsensor,
+      "date": reqdate,
+      "time": reqtime,
+      "value": reqvalue,
+      "name": reqname,
+      "id": reqidproof
+
+    });
+    return "sensor added";
+  }
+
+app.patch('/update/value/:id',async(req,res)=>{
+  const search = req.params.id;
+  const value = req.body.value;
+  await client.db().collection().updateOne({id: search},{$set:value});
+}) 
+
+this is my visitorlog.js:
+let visitorlog;
+
+class Visitorlog {
+	static async injectDB(conn) {
+		visitorlog = await conn.db("Prison_VMS").collection("visitorlog")
+	}
+
+	static async register(logno, username, inmateno, dateofvisit, timein, timeout, purpose, officerno) {
+		// TODO: Check if Logno exists
+		const res = await visitorlog.findOne({ Logno: logno })
+
+			if (res){
+				return { status: "duplicate Logno"}
+			}
+
+			// TODO: Save inmate to database
+				visitorlog.insertOne({
+              "Logno": logno,
+              "username": username,
+							"InmateNo": inmateno,
+							"Dateofvisit": dateofvisit,
+							"Timein": timein,
+							"Timeout": timeout,			
+              "Purpose": purpose,
+              "Insert By (OfficeNo)":officerno
+			
+            });
+            return { status: "Succesfully register visitorlog"}
+	}
+
+		static async update(logno,  dateofvisit, timein, timeout, purpose, officerno){
+				return visitorlog.updateOne({ Logno: logno },{$set:{
+					"InmateNo": inmateno,
+							"Dateofvisit": dateofvisit,
+							"Timein": timein,
+							"Timeout": timeout,			
+              "Purpose": purpose,
+              "Insert By (OfficeNo)":officerno
+		}})
+		}
+
+		static async delete(logno) {
+			visitorlog.deleteOne({Logno: logno})
+			return { status: "VisitorLog deleted!" }
+		}
+
+    static async find( logno ) {
+			return visitorlog.findOne({Logno: logno})
+		}
+
+	}
+
+
+module.exports = Visitorlog;
+
+this is my visitor.js:
+const bcrypt = require("bcrypt")
+let visitors;
+// 
+class Visitor {
+	static async injectDB(conn) {
+		visitors = await conn.db("Prison_VMS").collection("visitors")
+	}
+
+	/**
+	 * @remarks
+	 * This method is not implemented yet. To register a new user, you need to call this method.
+	 * 
+	 * @param {*} username 
+	 * @param {*} password 
+	 * @param {*} phone 
+	 */
+	static async register(username, password, name, age, gender, relation, telno) {
+		// TODO: Check if username exists
+		const res = await visitors.findOne({ username: username })
+
+			if (res){
+				return { status: "duplicate username"}
+			}
+
+			// TODO: Hash password
+			const salt = await bcrypt.genSalt(10);
+			const hash = await bcrypt.hash(password, salt)
+
+			// TODO: Save user to database
+			visitors.insertOne({
+							"username": username,
+							"Password": password,
+							"HashedPassword": hash,
+							"Name": name,
+							"Age": age,
+							"Gender": gender,
+              "Relation": relation,
+			  "PhoneNo": telno
+            });
+			return { status: "Succesfully register Visitor"}
+	}
+
+
+	static async login(username, password) {
+			// TODO: Check if username exists
+			const result = await visitors.findOne({username: username});
+
+				if (!result) {
+					return { status: "invalid username" }
+				}
+
+			// TODO: Validate password
+				const com = await bcrypt.compare(password, result.HashedPassword)
+				if (!com){
+					return { status: "invalid password"}
+				}
+			// TODO: Return user object
+				return result;
+				
+	}
+	
+	static async update(username, name, age, gender, relation,telno){
+			visitors.updateOne({username:username},{$set:{
+			"Name": name,
+			"Age": age,
+			"Gender": gender,
+            "Relation": relation,
+			"PhoneNo": telno
+			}})
+				return { status: "Information updated"}
+	}
+
+	static async delete(username) {
+		visitors.deleteOne({username: username})
+		return { status: "Visitor deleted!"}
+	}
+
+	static async getAllVisitors() {
+		const allVisitors = await visitors.find().toArray(); // Assuming 'visitors' is your collection
+		return allVisitors;
+	}
+}
+
+
+module.exports = Visitor;
+
+this is my user.js:
+const bcrypt = require("bcrypt")
+let users;
+// /
+class User {
+	static async injectDB(conn) {
+		users = await conn.db("Prison_VMS").collection("users")
+	}
+
+	/**
+	 * @remarks
+	 * This method is not implemented yet. To register a new user, you need to call this method.
+	 * 
+	 * @param {*} username 
+	 * @param {*} password 
+	 * @param {*} phone 
+	 */
+	static async register(username, password, name, officerno, rank, phone) {
+		// TODO: Check if username exists
+		const res = await users.findOne({ username: username })
+
+			if (res){
+				return { status: "duplicate username"}
+			}
+
+			// TODO: Hash password
+			const salt = await bcrypt.genSalt(10);
+			const hash = await bcrypt.hash(password, salt)
+
+			// TODO: Save user to database
+			users.insertOne({
+							"username": username,
+							"Password": password,
+							"HashedPassword": hash,
+							"Name": name,
+							"OfficerNo": officerno,
+							"Rank": rank,
+							"Phone": phone,});
+			return { status: "Succesfully register user"}
+	}
+
+	static async login(username, password) {
+			// TODO: Check if username exists
+			const result = await users.findOne({username: username});
+
+				if (!result) {
+					return { status: "invalid username" }
+				}
+
+			// TODO: Validate password
+				const com = await bcrypt.compare(password, result.HashedPassword)
+				if (!com){
+					return { status: "invalid password"}
+				}
+			// TODO: Return user object
+				return result;
+				
+	}
+	
+	static async update(username, name, officerno, rank, phone){
+			users.updateOne({username:username},{$set:{
+			"Name": name,
+			"OfficerNo": officerno,
+			"Rank": rank,
+			"Phone": phone,}});
+			return { status: "Information updated" }
+	}
+
+	static async delete(username) {
+		users.deleteOne({username: username})
+		return { status: "User deleted!" }
+	}
+/*
+	static async getAllUsers() {
+		try {
+		  const allUsers = await users.find({}).toArray();
+		  return allUsers;
+		} catch (err) {
+		  console.error("Error retrieving users:", err);
+		  return { error: "Failed to retrieve users" };
+		}
+	}	
+
+	// Add a new method to retrieve all users after a successful login
+	static async loginAndRetrieveAllUsers(username, password) {
+    	const loginResult = await this.login(username, password);
+
+    	if (loginResult.status !== "invalid username" && loginResult.status !== "invalid password") {
+        	const allUsers = await this.getAllUsers();
+        	return { loginStatus: "success", allUsers: allUsers };
+    }
+
+    	return { loginStatus: loginResult.status };
+	}
+*/
+/*
+	static async getAllUsers() {
+		return await users.find().toArray();
+  	}
+*/  
+static async getAllUsers() {
+    const allUsers = await users.find().toArray();
+    return allUsers;
+  }
+
+}
+
+
+module.exports = User;
+
+please help me fix this issue and generate the codes that fix the issues.

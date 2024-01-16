@@ -27,25 +27,45 @@ const port = process.env.PORT || 3030
 
 const jwt = require ('jsonwebtoken');
 function generateAccessToken(payload){
-	return jwt.sign(payload, "secretcode", { expiresIn: '2m' }); //expiration can be 'd' (day), 'h' (hour), 'm' (minute), 's' (second)
+	return jwt.sign(payload, "secretcode", { expiresIn: '1d' }); //expiration can be 'd' (day), 'h' (hour), 'm' (minute), 's' (second)
 }
+
+// function verifyToken(req, res, next) {
+// 	const authHeader = req.headers['authorization']
+// 	const token = authHeader && authHeader.split(' ')[1]
+
+// 	if (token == null) return res.sendStatus(401)
+
+// 	jwt.verify(token, "secretcode", (err, user) => {
+// 		console.log(err);
+
+// 		if (err) return res.sendStatus(403)
+
+// 		req.user = user
+
+// 		next()
+// 	})
+// }
 
 function verifyToken(req, res, next) {
-	const authHeader = req.headers['authorization']
-	const token = authHeader && authHeader.split(' ')[1]
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
 
-	if (token == null) return res.sendStatus(401)
+    if (!token) {
+        return res.sendStatus(401);
+    }
 
-	jwt.verify(token, "secretcode", (err, user) => {
-		console.log(err);
+    jwt.verify(token, "secretcode", (err, user) => {
+        if (err) {
+            return res.sendStatus(403);
+        }
 
-		if (err) return res.sendStatus(403)
-
-		req.user = user
-
-		next()
-	})
+        // Attach the decoded user information to req.user
+        req.user = user;
+        next();
+    });
 }
+
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
@@ -376,7 +396,7 @@ app.get('/view/visitor', async (req, res) => {
  *         description: There is an error during registration , Please try again
  */
 
-app.post('/register/user', async (req, res) => {
+app.post('/register/user', verifyToken, async (req, res) => {
 	console.log(req.body);
 	
 	const reg = await User.register(req.body.username, req.body.password, req.body.name, req.body.officerno, req.body.rank, req.body.phone);
@@ -559,7 +579,7 @@ app.post('/register/user', async (req, res) => {
  * /create/visitorpass:
  *   post:
  *     summary : VisitorPass Creation
- *     security:
+ *     security: 
  *      - jwt: []
  *     tags:
  *     - User
@@ -587,14 +607,37 @@ app.post('/register/user', async (req, res) => {
  *       401:
  *         description: There is an error during registration , Please try again
  */
-app.post('/create/visitorpass', async (req, res) => {
+// app.post('/create/visitorpass', async (req, res) => {
+// 	try {
+// 	  // Extracting relevant parameters from the request body
+// 	  const { inmateName, visitorRelationship, timeIn, timeOut, officerno } = req.body;
+  
+// 	  // Checking user authorization
+// 	  if (req.user.rank === 'officer' || req.user.rank === 'security' || req.user.rank === 'admin') {
+// 		// Call the register function with the extracted parameters
+// 		const reg = await Visitorlog.register({
+// 		  inmateName,
+// 		  visitorRelationship,
+// 		  timeIn,
+// 		  timeOut,
+// 		  officerno,
+// 		});
+  
+// 		res.status(200).send(reg);
+// 	  } else {
+// 		res.status(403).send("You are unauthorized");
+// 	  }
+// 	} catch (error) {
+// 	  console.error(error);
+// 	  res.status(500).json({ error: 'Internal server error' });
+// 	}
+//   });
+  
+app.post('/create/visitorpass', verifyToken, async (req, res) => {
 	try {
-	  // Extracting relevant parameters from the request body
 	  const { inmateName, visitorRelationship, timeIn, timeOut, officerno } = req.body;
   
-	  // Checking user authorization
 	  if (req.user.rank === 'officer' || req.user.rank === 'security' || req.user.rank === 'admin') {
-		// Call the register function with the extracted parameters
 		const reg = await Visitorlog.register({
 		  inmateName,
 		  visitorRelationship,
@@ -612,15 +655,14 @@ app.post('/create/visitorpass', async (req, res) => {
 	  res.status(500).json({ error: 'Internal server error' });
 	}
   });
-  
-  
+	
 
 /**
  * @swagger
  * /register/inmate:
  *   post:
  *     summary : Inmate Registration
- *     security:
+ *     security: 
  *      - jwt: []
  *     tags:
  *     - User
@@ -652,18 +694,35 @@ app.post('/create/visitorpass', async (req, res) => {
  *         description: There is an error during registration , Please try again
  */
 
- app.post('/register/inmate', async (req,res)=>{
-	console.log(req.body)
+//  app.post('/register/inmate', async (req,res)=>{
+// 	console.log(req.body)
 
-	if (req.user.rank == "officer" || "security" || "admin"){
-		const reg = await Inmate.register(req.body.inmateno, req.body.firstname, req.body.lastname, req.body.age, req.body.gender, req.body.guilty );
-		res.status(200).send(reg)
-	}
-	else{
-		res.status(403).send("You are unauthorized")
-	}
+// 	if (req.user.rank == "officer" || "security" || "admin"){
+// 		const reg = await Inmate.register(req.body.inmateno, req.body.firstname, req.body.lastname, req.body.age, req.body.gender, req.body.guilty );
+// 		res.status(200).send(reg)
+// 	}
+// 	else{
+// 		res.status(403).send("You are unauthorized")
+// 	}
 
-})
+// })
+
+app.post('/register/inmate', verifyToken, async (req, res) => {
+	try {
+	  console.log(req.body);
+	  
+	  if (req.user && (req.user.rank === 'officer' || req.user.rank === 'security' || req.user.rank === 'admin')) {
+		const reg = await Inmate.register(req.body.inmateno, req.body.firstname, req.body.lastname, req.body.age, req.body.gender, req.body.guilty);
+		res.status(200).send(reg);
+	  } else {
+		res.status(403).send("You are unauthorized");
+	  }
+	} catch (error) {
+	  console.error(error);
+	  res.status(500).json({ error: 'Internal server error' });
+	}
+  });
+  
 
 // /**
 //  * @swagger
